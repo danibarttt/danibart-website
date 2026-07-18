@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-"Aironi e altro" — a single-page bird photography gallery (Vite + React 19), deployed to GitHub Pages by CI. All website text is in Italian; code, comments, and error messages are in English. No tests, no linter, no TypeScript; styling is inline styles plus a few CSS files in `src/`.
+"Daniele Bartorilla — Fotografia Naturalistica" — a single-page bird photography gallery (Vite + React 19), deployed to GitHub Pages by CI. All website text is in Italian; code, comments, and error messages are in English. No tests, no linter, no TypeScript; styling is inline styles plus a few CSS files in `src/`.
 
 ## Commands
 

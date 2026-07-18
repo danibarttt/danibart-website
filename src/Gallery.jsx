@@ -21,10 +21,10 @@ function Header() {
       transition: "opacity 200ms ease",
     }}>
       <h1 style={{fontSize: '40px', textAlign: "center"}}>
-        Aironi e altro
+        Daniele Bartorilla
       </h1>
       <h4 style={{textAlign: "center", fontStyle: "italic", marginBottom: "50px"}}>
-        Foto di Daniele Bartorilla
+        Fotografia Naturalistica
       </h4>
     </div>
   )
