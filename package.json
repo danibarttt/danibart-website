@@ -19,6 +19,6 @@
     "build": "node src/generate-photos.js && vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist --dotfiles --message \"Deploy $(date)\""
+    "deploy": "gh-pages -d dist -b deploy --no-history --dotfiles -u \"danibarttt <128899232+danibarttt@users.noreply.github.com>\" --message \"Deploy $(date)\""
   }
 }

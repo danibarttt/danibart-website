@@ -6,8 +6,8 @@ const inputDir = path.join(process.cwd(), "photos");
 const thumbnailsOutputDir = path.join(process.cwd(), "generated_photos/thumbnails");
 const fullSizeOutputDir = path.join(process.cwd(), "generated_photos/fullsize");
 
-if (!fs.existsSync(thumbnailsOutputDir)) fs.mkdirSync(thumbnailsOutputDir);
-if (!fs.existsSync(fullSizeOutputDir)) fs.mkdirSync(fullSizeOutputDir);
+fs.mkdirSync(thumbnailsOutputDir, { recursive: true });
+fs.mkdirSync(fullSizeOutputDir, { recursive: true });
 
 const files = fs.readdirSync(inputDir);
 
