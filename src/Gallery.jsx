@@ -63,8 +63,8 @@ function Hero() {
         </div>
       </nav>
       <div className={`hero-content${visible ? " visible" : ""}`}>
-        <p className="overline">Fotografia naturalistica</p>
         <h1>Daniele Bartorilla</h1>
+        <p className="overline">Fotografia naturalistica</p>
         <p className="hero-tagline">
           Aironi, cormorani e gli altri abitanti delle zone umide, raccontati
           attraverso l'obiettivo.
