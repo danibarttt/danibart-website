@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- `npm run dev` — start dev server on port 3000. Requires `generated_photos/` to exist first (see below); run `node src/generate-photos.js` once if it's missing, since `dev` does not generate it.
+- `npm run dev` — start dev server on port 3000 (runs `generate-photos.js` first).
 - `npm run build` — runs `node src/generate-photos.js` then `vite build`.
 - Deploy is automatic: every push to `main` triggers `.github/workflows/deploy.yml`, which builds and force-pushes `dist/` as a single orphan commit to the `deploy` branch (the GitHub Pages source for https://danibart.it). `npm run deploy` exists as a manual fallback.
 
@@ -18,7 +18,9 @@ Source JPGs live in `photos/` (committed). `src/generate-photos.js` uses sharp t
 
 `photos.json` (repo root) is the single manifest: a hand-maintained ordered array of `{filename, title}` entries (array order = gallery display order). `src/photos.jsx` imports it and resolves URLs via `import.meta.glob`. **Adding a photo requires two steps:** drop the `.jpg` in `photos/` AND add an entry to `photos.json`. Each photo gets a stable URL id derived from `title` + MD5 of the filename.
 
-`src/check-photos.js` enforces a 1:1 match between `photos/*.jpg` and `photos.json` in both directions; it runs before `dev` and `build` (via `generate-photos.js`) and aborts with a nonzero exit on any mismatch.
+`src/generate-photos.js` (run by both `dev` and `build`) enforces a 1:1 match between `photos/*.jpg` and `photos.json` in both directions and aborts with a nonzero exit on any mismatch. Generation is incremental (skips existing outputs) and deletes stale outputs whose source photo was removed.
+
+Code, comments, and error messages are in English; only user-facing website strings are in Italian.
 
 ## Routing / lightbox
 

@@ -1,6 +1,6 @@
 {
   "name": "aironi-e-altro",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
@@ -15,7 +15,7 @@
     "yet-another-react-lightbox": "^3.25.0"
   },
   "scripts": {
-    "dev": "node src/check-photos.js && vite",
+    "dev": "node src/generate-photos.js && vite",
     "build": "node src/generate-photos.js && vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
