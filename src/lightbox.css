@@ -1,0 +1,8 @@
+.yarl__toolbar .yarl__button[title="Zoom in"],
+.yarl__toolbar .yarl__button[title="Zoom out"] {
+    display: none !important;
+}
+
+.yarl__navigation_next, .yarl__navigation_prev {
+    visibility: hidden !important;
+}
