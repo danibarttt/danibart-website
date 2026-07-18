@@ -16,7 +16,7 @@ The page is: hero (the `hero: true` photo as background, in-page nav), gallery (
 
 ## Photo pipeline (the key architecture)
 
-Source JPGs live in `photos/` (committed). `src/generate-photos.js` uses sharp to produce `generated_photos/fullsize/` (quality 100) and `generated_photos/thumbnails/` (600px wide, quality 70). `generated_photos/` is gitignored — it must be regenerated locally, and the app fails to show photos without it.
+Source JPGs live in `photos/` (committed). `src/generate-photos.js` uses sharp to produce `generated_photos/fullsize/` (quality 100), `generated_photos/thumbnails/` (600px wide, quality 70), and `generated_photos/hero/` (1920px wide, quality 78, only for `hero: true` entries — the hero background loads this, with the blurred thumbnail as instant placeholder). `generated_photos/` is gitignored — it must be regenerated locally, and the app fails to show photos without it.
 
 `photos.json` (repo root) is the single manifest: a hand-maintained ordered array of `{filename, title, description}` entries (array order = gallery display order; `description` may be empty and shows in the lightbox caption when set). One entry may carry `"hero": true` to become the hero background (falls back to the first entry). `src/photos.jsx` imports it and resolves URLs via `import.meta.glob`. **Adding a photo requires two steps:** drop the `.jpg` in `photos/` AND add an entry to `photos.json`. Each photo gets a stable URL id derived from `title` + MD5 of the filename.
 

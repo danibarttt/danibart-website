@@ -46,6 +46,7 @@ const heroPhoto = photos.find((p) => p.hero) ?? photos[0];
 
 function Hero() {
   const [visible, setVisible] = useState(false);
+  const [bgLoaded, setBgLoaded] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 150);
     return () => clearTimeout(t);
@@ -53,7 +54,15 @@ function Hero() {
 
   return (
     <header className="hero">
-      <img className="hero-bg" src={heroPhoto.src} alt="" aria-hidden="true"/>
+      {/* Blurred thumbnail shows instantly while the real background loads */}
+      <img className="hero-bg hero-bg-placeholder" src={heroPhoto.thumbnail} alt="" aria-hidden="true"/>
+      <img
+        className={`hero-bg${bgLoaded ? " loaded" : ""}`}
+        src={heroPhoto.heroSrc ?? heroPhoto.src}
+        alt=""
+        aria-hidden="true"
+        onLoad={() => setBgLoaded(true)}
+      />
       <div className="hero-overlay"/>
       <nav className="nav">
         <span className="nav-brand">DB</span>
@@ -130,10 +139,10 @@ function About() {
           zone umide: aironi, garzette, cormorani e i loro vicini di casa.
         </p>
         <p>
-          Scatto principalmente nel pavese, tra risaie, lanche e garzaie. Ogni
-          foto nasce da attese silenziose all'alba, quando la luce è morbida e
-          gli animali si muovono indisturbati. Questo sito raccoglie le
-          immagini a cui sono più legato.
+          Scatto principalmente nel Pavese, tra risaie, lanche e garzaie. Mi
+          piace fotografare la natura nelle prime ore del mattino o al
+          tramonto, quando la luce è più morbida. In questo sito raccolgo le
+          foto a cui tengo di più, spero vi piacciano!
         </p>
       </div>
     </section>

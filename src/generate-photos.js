@@ -7,6 +7,7 @@ const manifest = require("../photos.json");
 const inputDir = path.join(process.cwd(), "photos");
 const thumbnailsOutputDir = path.join(process.cwd(), "generated_photos/thumbnails");
 const fullSizeOutputDir = path.join(process.cwd(), "generated_photos/fullsize");
+const heroOutputDir = path.join(process.cwd(), "generated_photos/hero");
 
 const files = fs.readdirSync(inputDir).filter(file => file.endsWith(".jpg"));
 
@@ -27,6 +28,7 @@ if (missingFromManifest.length > 0 || missingFromDir.length > 0) {
 
 fs.mkdirSync(thumbnailsOutputDir, { recursive: true });
 fs.mkdirSync(fullSizeOutputDir, { recursive: true });
+fs.mkdirSync(heroOutputDir, { recursive: true });
 
 // Remove outputs whose source photo is gone, or Vite would still bundle them
 for (const dir of [thumbnailsOutputDir, fullSizeOutputDir]) {
@@ -35,6 +37,28 @@ for (const dir of [thumbnailsOutputDir, fullSizeOutputDir]) {
       fs.unlinkSync(path.join(dir, file));
       console.log(`Removed stale output: ${file}`);
     }
+  }
+}
+
+// The hero background gets its own screen-sized derivative; only hero-flagged
+// entries need one, so stale files also include photos that lost the flag
+const heroFiles = manifest.filter(photo => photo.hero).map(photo => `${photo.filename}.jpg`);
+for (const file of fs.readdirSync(heroOutputDir)) {
+  if (!heroFiles.includes(file)) {
+    fs.unlinkSync(path.join(heroOutputDir, file));
+    console.log(`Removed stale hero output: ${file}`);
+  }
+}
+
+for (const file of heroFiles) {
+  const heroOutputPath = path.join(heroOutputDir, file);
+  if (!fs.existsSync(heroOutputPath)) {
+    sharp(path.join(inputDir, file))
+      .resize({ width: 1920 })
+      .jpeg({ quality: 78, mozjpeg: true })
+      .toFile(heroOutputPath)
+      .then(() => console.log(`Hero created: ${file}`))
+      .catch(err => console.error(err));
   }
 }
 
