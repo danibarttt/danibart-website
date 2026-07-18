@@ -15,7 +15,7 @@
     "yet-another-react-lightbox": "^3.25.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "node src/check-photos.js && vite",
     "build": "node src/generate-photos.js && vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
