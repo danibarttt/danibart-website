@@ -8,5 +8,5 @@ export default photos.map(photo => {
   const thumbnail = thumbnailUrls[`../generated_photos/thumbnails/${photo.filename}.jpg`];
   const url = urls[`../generated_photos/fullsize/${photo.filename}.jpg`];
   const id = `${photo.title.replace(/ /g, "-")}-${CryptoJS.MD5(photo.filename).toString()}`;
-  return {src: url, thumbnail, title: photo.title, id};
+  return {src: url, thumbnail, title: photo.title, description: photo.description, hero: photo.hero, id};
 });

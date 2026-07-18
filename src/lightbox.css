@@ -6,3 +6,17 @@
 .yarl__navigation_next, .yarl__navigation_prev {
     visibility: hidden !important;
 }
+
+.yarl__slide_title {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+}
+
+.yarl__slide_description {
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+    color: #cfccc4;
+    line-height: 1.6;
+}

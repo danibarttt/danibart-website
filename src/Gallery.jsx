@@ -8,26 +8,136 @@ import "yet-another-react-lightbox/plugins/captions.css";
 import photos from "./photos";
 import "./lightbox.css";
 
-function Header() {
+// Drop a src/profile.jpg (or .jpeg/.png) in the repo and it shows up automatically
+const profileImages = import.meta.glob("./profile.{jpg,jpeg,png}", {
+  eager: true,
+  import: "default",
+});
+const profileSrc = Object.values(profileImages)[0];
+
+// Plain anchors would clash with the hash router, so scroll programmatically
+const scrollTo = (id) =>
+  document.getElementById(id)?.scrollIntoView({behavior: "smooth"});
+
+function useReveal() {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShown(true);
+          observer.disconnect();
+        }
+      },
+      {threshold: 0.15},
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return [ref, shown];
+}
+
+const heroPhoto = photos.find((p) => p.hero) ?? photos[0];
+
+function Hero() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 200);
+    const t = setTimeout(() => setVisible(true), 150);
     return () => clearTimeout(t);
   }, []);
 
   return (
-    <div style={{
-      opacity: visible ? 1 : 0,
-      transition: "opacity 200ms ease",
-    }}>
-      <h1 style={{fontSize: '40px', textAlign: "center"}}>
-        Daniele Bartorilla
-      </h1>
-      <h4 style={{textAlign: "center", fontStyle: "italic", marginBottom: "50px"}}>
-        Fotografia Naturalistica
-      </h4>
-    </div>
-  )
+    <header className="hero">
+      <img className="hero-bg" src={heroPhoto.src} alt="" aria-hidden="true"/>
+      <div className="hero-overlay"/>
+      <nav className="nav">
+        <span className="nav-brand">DB</span>
+        <div className="nav-links">
+          <button onClick={() => scrollTo("galleria")}>Galleria</button>
+          <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
+        </div>
+      </nav>
+      <div className={`hero-content${visible ? " visible" : ""}`}>
+        <p className="overline">Fotografia naturalistica</p>
+        <h1>Daniele Bartorilla</h1>
+        <p className="hero-tagline">
+          Aironi, cormorani e gli altri abitanti delle zone umide, raccontati
+          attraverso l'obiettivo.
+        </p>
+      </div>
+      <button
+        className="scroll-hint"
+        onClick={() => scrollTo("galleria")}
+        aria-label="Vai alla galleria"
+      >
+        ↓
+      </button>
+    </header>
+  );
+}
+
+function GalleryItem({photo, onOpen}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <figure
+      className="gallery-item"
+      onClick={onOpen}
+      onKeyDown={(e) => e.key === "Enter" && onOpen()}
+      tabIndex={0}
+      role="button"
+      aria-label={photo.title}
+    >
+      <img
+        alt={photo.title}
+        src={photo.thumbnail}
+        loading="lazy"
+        className={loaded ? "loaded" : ""}
+        onLoad={() => setLoaded(true)}
+      />
+      <figcaption className="gallery-caption">{photo.title}</figcaption>
+    </figure>
+  );
+}
+
+function About() {
+  const [ref, shown] = useReveal();
+
+  return (
+    <section
+      id="chi-sono"
+      ref={ref}
+      className={`section about reveal${shown ? " shown" : ""}`}
+    >
+      <div className="about-photo">
+        {profileSrc ? (
+          <img src={profileSrc} alt="Ritratto di Daniele Bartorilla"/>
+        ) : (
+          <div className="about-placeholder">DB</div>
+        )}
+      </div>
+      <div className="about-text">
+        <p className="overline">Chi sono</p>
+        <h2 className="section-title">Dietro l'obiettivo</h2>
+        <p>
+          Mi chiamo Daniele Bartorilla, informatico di professione e fotografo
+          naturalista per passione, con una predilezione per gli uccelli delle
+          zone umide: aironi, garzette, cormorani e i loro vicini di casa.
+        </p>
+        <p>
+          Scatto principalmente nel pavese, tra risaie, lanche e garzaie. Ogni
+          foto nasce da attese silenziose all'alba, quando la luce è morbida e
+          gli animali si muovono indisturbati. Questo sito raccoglie le
+          immagini a cui sono più legato.
+        </p>
+      </div>
+    </section>
+  );
 }
 
 export default function Gallery() {
@@ -61,39 +171,31 @@ export default function Gallery() {
 
   return (
     <div>
-      <Header/>
-      <div
-        style={{
-          columnCount: 3,
-          columnGap: "4px",
-        }}
-      >
-        {photos.map((photo) => (
-          <img
-            key={photo.id}
-            alt={photo.title}
-            src={photo.thumbnail}
-            loading="lazy"
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              marginBottom: "4px",
-              cursor: "pointer",
-              opacity: 0,
-              transition: "opacity 0.7s ease-in-out",
-            }}
-            onLoad={(e) => (e.currentTarget.style.opacity = 1)}
-            onClick={() => openLightbox(photo.id)}
-          />
-        ))}
-      </div>
+      <Hero/>
+
+      <section id="galleria" className="section">
+        <div className="section-header">
+          <h2 className="section-title">Galleria</h2>
+        </div>
+        <div className="gallery-grid">
+          {photos.map((photo) => (
+            <GalleryItem
+              key={photo.id}
+              photo={photo}
+              onOpen={() => openLightbox(photo.id)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <About/>
 
       {currentIndex >= 0 && (
         <Lightbox
           slides={photos.map((photo) => ({
             src: photo.src,
             title: photo.title,
+            description: photo.description || undefined,
           }))}
           plugins={[Zoom, Captions]}
           open={true}

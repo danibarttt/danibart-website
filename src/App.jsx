@@ -11,7 +11,7 @@ const router = createHashRouter([
 
 export default function App() {
   return <div style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
-    <div style={{flex: 1, padding: '30px', boxSizing: 'border-box'}}>
+    <div style={{flex: 1}}>
       <RouterProvider router={router}/>
     </div>
     <Footer/>
