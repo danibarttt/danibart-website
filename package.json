@@ -3,22 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "license": "UNLICENSED",
+  "author": "Daniele Bartorilla",
   "dependencies": {
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^6.0.3",
     "crypto-js": "^4.2.0",
-    "gh-pages": "^6.3.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-router": "^7.9.4",
-    "sharp": "^0.34.4",
-    "vite": "^6.4.1",
-    "yet-another-react-lightbox": "^3.25.0"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router": "^8.2.0",
+    "sharp": "^0.35.3",
+    "vite": "^8.1.5",
+    "yet-another-react-lightbox": "^3.32.1"
   },
   "scripts": {
     "dev": "node src/generate-photos.js && vite",
     "build": "node src/generate-photos.js && vite build",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -b deploy --no-history --dotfiles -u \"danibarttt <128899232+danibarttt@users.noreply.github.com>\" --message \"Deploy $(date)\""
+    "preview": "vite preview"
   }
 }
