@@ -28,6 +28,17 @@ if (!fs.existsSync(distDir)) {
 const escapeHtml = text =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// Serialize JSON-LD for inline <script> embedding ("<" could otherwise
+// close the script tag early)
+const jsonLd = data => JSON.stringify(data).replace(/</g, "\\u003c");
+
+const AUTHOR = {
+  "@type": "Person",
+  "@id": `${SITE}/#person`,
+  name: "Daniele Bartorilla",
+  url: `${SITE}/`,
+};
+
 fs.cpSync(socialInputDir, path.join(distDir, "social"), { recursive: true });
 
 for (const photo of manifest) {
@@ -45,6 +56,21 @@ for (const photo of manifest) {
 `
     : "";
 
+  // ImageObject structured data: makes the photo eligible for creator /
+  // credit info in Google Images results
+  const photoLd = jsonLd({
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    contentUrl: imageUrl,
+    url: pageUrl,
+    name: photo.title,
+    description,
+    inLanguage: "it",
+    creator: AUTHOR,
+    creditText: "Daniele Bartorilla",
+    copyrightNotice: "© Daniele Bartorilla",
+  });
+
   const html = `<!DOCTYPE html>
 <html lang="it">
   <head>
@@ -53,13 +79,16 @@ for (const photo of manifest) {
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <meta property="og:type" content="article" />
+    <meta property="og:locale" content="it_IT" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(pageUrl)}" />
     <meta property="og:image" content="${escapeHtml(imageUrl)}" />
-${imageSize}    <meta name="twitter:card" content="summary_large_image" />
+${imageSize}    <meta property="og:image:alt" content="${escapeHtml(photo.species ? `${photo.title} (${photo.species})` : photo.title)}" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href="${SITE}/" />
+    <script type="application/ld+json">${photoLd}</script>
     <meta http-equiv="refresh" content="0;url=${escapeHtml(target)}" />
     <script>location.replace(${JSON.stringify(target)});</script>
   </head>
@@ -81,13 +110,59 @@ const heroLarge = manifest.find(photo => photo.heroLarge) ?? heroFallback;
 const heroSmall = manifest.find(photo => photo.heroSmall) ?? heroFallback;
 const hero = heroLarge;
 const indexPath = path.join(distDir, "index.html");
+const SITE_DESCRIPTION =
+  "Fotografia naturalistica di Daniele Bartorilla: aironi e altri uccelli delle zone umide.";
+
+// Site-wide structured data: the author and the gallery itself. Every photo
+// is listed as associatedMedia — the /p/ pages carrying the per-photo
+// ImageObject are redirects, so this is the copy crawlers reliably read.
+const siteLd = jsonLd({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      ...AUTHOR,
+      jobTitle: "Fotografo naturalista",
+      email: "mailto:danielebartorilla@gmail.com",
+    },
+    {
+      "@type": ["WebSite", "ImageGallery"],
+      name: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      url: `${SITE}/`,
+      inLanguage: "it",
+      author: { "@id": AUTHOR["@id"] },
+      associatedMedia: manifest.map(photo => ({
+        "@type": "ImageObject",
+        contentUrl: `${SITE}/social/${photo.filename}.jpg`,
+        url: `${SITE}/p/${photoId(photo)}/`,
+        name: photo.title,
+        ...(photo.description || photo.species
+          ? { description: photo.description || photo.species }
+          : {}),
+        creator: { "@id": AUTHOR["@id"] },
+        creditText: "Daniele Bartorilla",
+        copyrightNotice: "© Daniele Bartorilla",
+      })),
+    },
+  ],
+});
+
+const heroMeta = metadata[hero.filename] ?? {};
+const heroImageSize = heroMeta.width
+  ? `    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="${Math.round((1200 * heroMeta.height) / heroMeta.width)}" />
+`
+  : "";
 const siteTags = `    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="it_IT" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
     <meta property="og:title" content="${escapeHtml(SITE_NAME)}" />
-    <meta property="og:description" content="Fotografia naturalistica di Daniele Bartorilla: aironi e altri uccelli delle zone umide." />
+    <meta property="og:description" content="${escapeHtml(SITE_DESCRIPTION)}" />
     <meta property="og:url" content="${SITE}/" />
     <meta property="og:image" content="${SITE}/social/${hero.filename}.jpg" />
+${heroImageSize}    <meta property="og:image:alt" content="${escapeHtml(hero.species ? `${hero.title} (${hero.species})` : hero.title)}" />
     <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">${siteLd}</script>
 `;
 const indexHtml = fs.readFileSync(indexPath, "utf8");
 if (!indexHtml.includes("</head>")) {
@@ -131,3 +206,21 @@ for (const { photo, media } of heroVariants) {
 
 fs.writeFileSync(indexPath, indexHtml.replace("</head>", `${preloadTag}${siteTags}  </head>`));
 console.log("Open Graph tags injected into dist/index.html");
+
+// Image sitemap: every photo is listed as an image of the homepage (where the
+// gallery actually shows them — the /p/ pages redirect there anyway, so they
+// are not listed as standalone URLs). Google's crawler only reads image:loc.
+const sitemapEntries = manifest
+  .map(photo => `    <image:image><image:loc>${SITE}/social/${photo.filename}.jpg</image:loc></image:image>`)
+  .join("\n");
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>${SITE}/</loc>
+${sitemapEntries}
+  </url>
+</urlset>
+`;
+fs.writeFileSync(path.join(distDir, "sitemap.xml"), sitemap);
+console.log(`Sitemap written with ${manifest.length} images`);

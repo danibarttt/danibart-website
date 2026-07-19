@@ -257,7 +257,7 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
           <source srcSet={photo.thumbnailWebp} type="image/webp"/>
         )}
         <img
-          alt={photo.title}
+          alt={photo.species ? `${photo.title} (${photo.species})` : photo.title}
           src={photo.thumbnail}
           loading="lazy"
           decoding="async"
