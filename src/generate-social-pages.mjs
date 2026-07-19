@@ -73,8 +73,13 @@ ${imageSize}    <meta name="twitter:card" content="summary_large_image" />
 }
 console.log(`Social pages created: ${manifest.length}`);
 
-// Site-wide Open Graph tags on the SPA entry page, using the hero photo
-const hero = manifest.find(photo => photo.hero) ?? manifest[0];
+// Site-wide Open Graph tags on the SPA entry page, using the hero photo.
+// With split heroSmall/heroLarge heroes, the large one represents the site
+// (Open Graph previews are landscape-shaped, like wide viewports).
+const heroFallback = manifest.find(photo => photo.hero) ?? manifest[0];
+const heroLarge = manifest.find(photo => photo.heroLarge) ?? heroFallback;
+const heroSmall = manifest.find(photo => photo.heroSmall) ?? heroFallback;
+const hero = heroLarge;
 const indexPath = path.join(distDir, "index.html");
 const siteTags = `    <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
@@ -93,19 +98,35 @@ if (!indexHtml.includes("</head>")) {
 // Preload the hero background (the LCP): without it the browser discovers the
 // image only after downloading and running the JS bundle. The hashed asset is
 // found by basename; the hero rendition is the largest webp with that stem
-// (the other candidate is the 600px thumbnail).
-let preloadTag = "";
+// (the other candidate is the 600px thumbnail). With distinct small/large
+// heroes, each preload carries the media query of the viewport it serves —
+// it must mirror HERO_LARGE_QUERY in Gallery.jsx so only one image downloads.
 const assetsDir = path.join(distDir, "assets");
-const heroAsset = fs
-  .readdirSync(assetsDir)
-  .filter(file => file.startsWith(`${hero.filename}-`) && file.endsWith(".webp"))
-  .map(file => ({ file, size: fs.statSync(path.join(assetsDir, file)).size }))
-  .sort((a, b) => b.size - a.size)[0];
-if (heroAsset) {
-  preloadTag = `    <link rel="preload" as="image" type="image/webp" fetchpriority="high" href="/assets/${heroAsset.file}" />
+const findHeroAsset = filename =>
+  fs
+    .readdirSync(assetsDir)
+    .filter(file => file.startsWith(`${filename}-`) && file.endsWith(".webp"))
+    .map(file => ({ file, size: fs.statSync(path.join(assetsDir, file)).size }))
+    .sort((a, b) => b.size - a.size)[0];
+
+const heroVariants =
+  heroSmall.filename === heroLarge.filename
+    ? [{ photo: heroLarge }]
+    : [
+        { photo: heroSmall, media: "(max-width: 1023.98px)" },
+        { photo: heroLarge, media: "(min-width: 1024px)" },
+      ];
+
+let preloadTag = "";
+for (const { photo, media } of heroVariants) {
+  const asset = findHeroAsset(photo.filename);
+  if (!asset) {
+    console.warn(`WARNING: no hero webp asset found for ${photo.filename}, skipping preload`);
+    continue;
+  }
+  const mediaAttr = media ? ` media="${media}"` : "";
+  preloadTag += `    <link rel="preload" as="image" type="image/webp" fetchpriority="high"${mediaAttr} href="/assets/${asset.file}" />
 `;
-} else {
-  console.warn(`WARNING: no hero webp asset found for ${hero.filename}, skipping preload`);
 }
 
 fs.writeFileSync(indexPath, indexHtml.replace("</head>", `${preloadTag}${siteTags}  </head>`));

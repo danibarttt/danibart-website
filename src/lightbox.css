@@ -39,8 +39,12 @@
     width: 116%;
     height: 116%;
     object-fit: cover;
-    filter: blur(64px) saturate(120%) brightness(0.6);
+    /* The src is the tiny 24px placeholder, so upscaling does most of the
+       smoothing; a modest radius is enough and much cheaper to rasterize
+       than the old blur(64px) over a real thumbnail */
+    filter: blur(32px) saturate(120%) brightness(0.6);
     opacity: 0;
+    will-change: opacity;
     animation: lightbox-backdrop-fade 0.5s ease forwards;
 }
 
@@ -89,6 +93,9 @@
        resolve to auto and overflow the slide */
     grid-template: 100% / 100%;
     pointer-events: none;
+    /* Blur the stack as a group: one rasterization per slide instead of one
+       per stacked image */
+    filter: blur(32px) saturate(115%);
     transition: opacity 0.4s ease;
 }
 
@@ -101,7 +108,6 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    filter: blur(32px) saturate(115%);
 }
 
 /* Soften the fullsize image swap over the blurred placeholder */
@@ -268,7 +274,7 @@
     width: 530px; /* 5 × (96px + 2px border) + 4 × 10px gap */
     max-width: 100%;
     margin-inline: auto;
-    padding: 14px 0 18px;
+    padding: 14px 0 30px;
     mask-image: linear-gradient(
         to right,
         transparent,
@@ -336,7 +342,7 @@
 @media (max-width: 640px) {
     .yarl__thumbnails_container {
         width: 402px; /* 5 × (72px + 2px border) + 4 × 8px gap */
-        padding: 10px 0 14px;
+        padding: 10px 0 24px;
     }
 
     .yarl__thumbnails_track {

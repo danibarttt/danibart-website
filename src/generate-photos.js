@@ -3,12 +3,15 @@ const exifReader = require("exif-reader");
 const fs = require("fs");
 const path = require("path");
 
-const manifest = require("../photos.json");
+const manifestPath = path.join(__dirname, "..", "photos.json");
+let manifest = require(manifestPath);
 
 const inputDir = path.join(process.cwd(), "photos");
 const outputRoot = path.join(process.cwd(), "generated_photos");
 const thumbnailsOutputDir = path.join(outputRoot, "thumbnails");
 const fullSizeOutputDir = path.join(outputRoot, "fullsize");
+const slidesOutputDir = path.join(outputRoot, "slides");
+const originalOutputDir = path.join(outputRoot, "original");
 const heroOutputDir = path.join(outputRoot, "hero");
 const socialOutputDir = path.join(outputRoot, "social");
 const metadataPath = path.join(outputRoot, "metadata.json");
@@ -20,25 +23,38 @@ const listed = manifest.map(photo => photo.filename);
 const missingFromManifest = names.filter(name => !listed.includes(name));
 const missingFromDir = listed.filter(name => !names.includes(name));
 
-if (missingFromManifest.length > 0 || missingFromDir.length > 0) {
+if (missingFromManifest.length > 0) {
   for (const name of missingFromManifest) {
     console.error(`ERROR: photos/${name}.jpg has no entry in photos.json`);
-  }
-  for (const name of missingFromDir) {
-    console.error(`ERROR: photos.json lists "${name}" but photos/${name}.jpg does not exist`);
   }
   process.exit(1);
 }
 
+// Entries whose source photo was deleted are pruned from photos.json, so
+// removing a photo only takes deleting the .jpg
+if (missingFromDir.length > 0) {
+  manifest = manifest.filter(photo => names.includes(photo.filename));
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+  for (const name of missingFromDir) {
+    console.log(`Removed "${name}" from photos.json: photos/${name}.jpg no longer exists`);
+  }
+}
+
+// Downscaled lightbox renditions: srcSet entries so phones fetch ~1280px
+// (a few hundred KB) instead of the multi-MB full-resolution photo
+const SLIDE_WIDTHS = [1280, 2048];
+
 fs.mkdirSync(thumbnailsOutputDir, { recursive: true });
 fs.mkdirSync(fullSizeOutputDir, { recursive: true });
+fs.mkdirSync(slidesOutputDir, { recursive: true });
+fs.mkdirSync(originalOutputDir, { recursive: true });
 fs.mkdirSync(heroOutputDir, { recursive: true });
 fs.mkdirSync(socialOutputDir, { recursive: true });
 
 // Remove outputs whose source photo is gone, or Vite would still bundle them.
 // Outputs are matched by basename since thumbnails/hero also have .webp variants.
 const stem = file => file.replace(/\.(jpg|webp)$/, "");
-for (const dir of [thumbnailsOutputDir, fullSizeOutputDir, socialOutputDir]) {
+for (const dir of [thumbnailsOutputDir, fullSizeOutputDir, originalOutputDir, socialOutputDir]) {
   for (const file of fs.readdirSync(dir)) {
     if (!names.includes(stem(file))) {
       fs.unlinkSync(path.join(dir, file));
@@ -47,9 +63,20 @@ for (const dir of [thumbnailsOutputDir, fullSizeOutputDir, socialOutputDir]) {
   }
 }
 
+// Slide renditions carry a width suffix (<name>-1280.jpg)
+for (const file of fs.readdirSync(slidesOutputDir)) {
+  if (!names.includes(stem(file).replace(/-\d+$/, ""))) {
+    fs.unlinkSync(path.join(slidesOutputDir, file));
+    console.log(`Removed stale output: ${file}`);
+  }
+}
+
 // The hero background gets its own screen-sized derivative; only hero-flagged
-// entries need one, so stale files also include photos that lost the flag
-const heroNames = manifest.filter(photo => photo.hero).map(photo => photo.filename);
+// entries need one (hero, or the viewport-specific heroSmall/heroLarge), so
+// stale files also include photos that lost the flag
+const heroNames = manifest
+  .filter(photo => photo.hero || photo.heroSmall || photo.heroLarge)
+  .map(photo => photo.filename);
 for (const file of fs.readdirSync(heroOutputDir)) {
   if (!heroNames.includes(stem(file))) {
     fs.unlinkSync(path.join(heroOutputDir, file));
@@ -82,6 +109,17 @@ for (const name of names) {
   // the photo incrementally while it downloads
   generate(path.join(fullSizeOutputDir, `${name}.jpg`), () =>
     sharp(inputPath).jpeg({ quality: 90, mozjpeg: true }), "Full-size created");
+  // withoutEnlargement: photos narrower than the target just get re-encoded
+  // at their native size; photos.jsx drops entries that match the full width
+  for (const width of SLIDE_WIDTHS) {
+    generate(path.join(slidesOutputDir, `${name}-${width}.jpg`), () =>
+      sharp(inputPath).resize({ width, withoutEnlargement: true })
+        .jpeg({ quality: 85, mozjpeg: true }), `Slide ${width} created`);
+  }
+  // q100 rendition for the lightbox HQ button; re-encoded with sharp (rather
+  // than copying the source file) so EXIF/GPS metadata stays stripped
+  generate(path.join(originalOutputDir, `${name}.jpg`), () =>
+    sharp(inputPath).jpeg({ quality: 100, mozjpeg: true }), "Original created");
   generate(path.join(thumbnailsOutputDir, `${name}.jpg`), () =>
     sharp(inputPath).resize({ width: 600 }).jpeg({ quality: 70, mozjpeg: true }), "Thumbnail created");
   generate(path.join(thumbnailsOutputDir, `${name}.webp`), () =>

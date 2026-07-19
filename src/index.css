@@ -832,6 +832,15 @@ button:focus-visible,
 }
 
 @media (max-width: 600px) {
+  /* Tighter vertical rhythm: shorter hero, less air around section headers */
+  .section {
+    padding-top: 40px;
+  }
+
+  .section-header {
+    margin-bottom: 26px;
+  }
+
   .gallery-grid {
     column-gap: 8px;
   }
@@ -847,7 +856,7 @@ button:focus-visible,
   }
 
   .hero {
-    min-height: 78vh;
+    min-height: 62vh;
   }
 
   /* Collapse the text links into the hamburger, in both navs */

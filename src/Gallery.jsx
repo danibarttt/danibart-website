@@ -1,4 +1,12 @@
-import {useState, useEffect, useRef} from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  memo,
+  startTransition,
+} from "react";
 import Lightbox, {ImageSlide} from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import {useNavigate, useLocation} from "react-router";
@@ -46,7 +54,29 @@ function useReveal() {
   return [ref, shown];
 }
 
-const heroPhoto = photos.find((p) => p.hero) ?? photos[0];
+// Two hero photos may be designated in photos.json: heroSmall (narrow
+// viewports) and heroLarge (wide viewports, where object-fit: cover crops
+// tall photos the most). A plain hero: true photo backs both as fallback.
+// The breakpoint must match the preload media queries in generate-social-pages.mjs.
+const HERO_LARGE_QUERY = "(min-width: 1024px)";
+const heroFallback = photos.find((p) => p.hero) ?? photos[0];
+const heroSmallPhoto = photos.find((p) => p.heroSmall) ?? heroFallback;
+const heroLargePhoto = photos.find((p) => p.heroLarge) ?? heroFallback;
+
+function useHeroPhoto() {
+  const [isLarge, setIsLarge] = useState(
+    () => window.matchMedia(HERO_LARGE_QUERY).matches,
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia(HERO_LARGE_QUERY);
+    const onChange = (e) => setIsLarge(e.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return isLarge ? heroLargePhoto : heroSmallPhoto;
+}
 
 const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
 
@@ -147,8 +177,12 @@ function StickyNav({onMenuOpen}) {
 }
 
 function Hero({onMenuOpen}) {
+  const heroPhoto = useHeroPhoto();
   const [visible, setVisible] = useState(false);
-  const [bgLoaded, setBgLoaded] = useState(false);
+  // Tracks which photo has loaded, so crossing the breakpoint fades the
+  // incoming background in instead of inheriting the previous one's state
+  const [loadedId, setLoadedId] = useState(null);
+  const bgLoaded = loadedId === heroPhoto.id;
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 150);
     return () => clearTimeout(t);
@@ -163,7 +197,7 @@ function Hero({onMenuOpen}) {
         alt=""
         aria-hidden="true"
       />
-      <picture>
+      <picture key={heroPhoto.id}>
         {heroPhoto.heroWebp && (
           <source srcSet={heroPhoto.heroWebp} type="image/webp"/>
         )}
@@ -173,7 +207,7 @@ function Hero({onMenuOpen}) {
           alt=""
           aria-hidden="true"
           fetchPriority="high"
-          onLoad={() => setBgLoaded(true)}
+          onLoad={() => setLoadedId(heroPhoto.id)}
         />
       </picture>
       <div className="hero-overlay"/>
@@ -198,7 +232,10 @@ function Hero({onMenuOpen}) {
   );
 }
 
-function GalleryItem({photo, index, onOpen}) {
+// Memoized: the whole Gallery re-renders on every lightbox navigation (the
+// URL sync re-renders the route), and 38 items re-rendering per swipe is
+// noticeable jank on phones
+const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
   const [loaded, setLoaded] = useState(false);
   const [ref, shown] = useReveal();
 
@@ -207,8 +244,8 @@ function GalleryItem({photo, index, onOpen}) {
       ref={ref}
       className={`gallery-item reveal-item${shown ? " shown" : ""}`}
       style={{transitionDelay: `${(index % 3) * 80}ms`}}
-      onClick={onOpen}
-      onKeyDown={(e) => e.key === "Enter" && onOpen()}
+      onClick={() => onOpen(photo.id)}
+      onKeyDown={(e) => e.key === "Enter" && onOpen(photo.id)}
       tabIndex={0}
       role="button"
       aria-label={photo.title}
@@ -238,7 +275,7 @@ function GalleryItem({photo, index, onOpen}) {
       </figcaption>
     </figure>
   );
-}
+});
 
 function About() {
   const [ref, shown] = useReveal();
@@ -329,8 +366,29 @@ function buildCaption(photo) {
   );
 }
 
-// Fullscreen ambient backdrop for the lightbox: the current photo's
-// thumbnail hyper-blurred under a dark overlay, crossfading on navigation
+// The slides array is hoisted because its identity must be stable: the
+// lightbox resets its internal state (cutting the swipe animation short)
+// whenever it receives a new slides array, and Gallery re-renders on every
+// swipe to sync the ?photo= URL param
+const lightboxSlides = photos.map((photo) => ({
+  src: photo.src,
+  // Downscaled renditions: phones fetch ~1280px instead of the multi-MB
+  // full-resolution photo, which took seconds per swipe on cellular
+  srcSet: photo.srcSet,
+  // width/height also feed the Zoom plugin's max-zoom computation
+  width: photo.width,
+  height: photo.height,
+  // The webp variant is what the gallery <picture> already
+  // downloaded, so the filmstrip and blur-up hit the browser cache
+  thumbnail: photo.thumbnailWebp ?? photo.thumbnail,
+  blur: photo.blur,
+  description: buildCaption(photo),
+}));
+
+// Fullscreen ambient backdrop for the lightbox: the current photo's tiny
+// blur placeholder stretched under a dark overlay, crossfading on navigation.
+// The base64 placeholder is used (not the 600px thumbnail) so each swipe
+// composites a cheap 24px source instead of decoding + blurring a real image.
 function LightboxBackdrop({photo}) {
   const [layers, setLayers] = useState(photo ? [photo] : []);
   const wasShown = useRef(false);
@@ -349,13 +407,27 @@ function LightboxBackdrop({photo}) {
     }
   }, [photo]);
 
+  // Once the incoming layer's fade-in finishes, drop the outgoing one so
+  // only a single fullscreen blurred layer stays composited between swipes
+  const prune = (id) =>
+    setLayers((prev) =>
+      prev.length > 1 && prev[prev.length - 1].id === id
+        ? prev.slice(-1)
+        : prev,
+    );
+
   return (
     <div
       className={`lightbox-backdrop${photo ? " shown" : ""}`}
       aria-hidden="true"
     >
       {layers.map((p) => (
-        <img key={p.id} src={p.thumbnailWebp ?? p.thumbnail} alt=""/>
+        <img
+          key={p.id}
+          src={p.blur ?? p.thumbnailWebp ?? p.thumbnail}
+          alt=""
+          onAnimationEnd={() => prune(p.id)}
+        />
       ))}
     </div>
   );
@@ -366,16 +438,28 @@ function LightboxBackdrop({photo}) {
 // paints instantly), then fade it out once the real image is in
 function BlurUpSlide({slide, offset, rect, onClick}) {
   const [loaded, setLoaded] = useState(false);
+  // Unmount the blurred layers once faded out: leaving them at opacity 0
+  // keeps a fullscreen filtered layer alive per mounted slide, which drags
+  // down the swipe and zoom animations
+  const [blurGone, setBlurGone] = useState(false);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const t = setTimeout(() => setBlurGone(true), 450); // fade lasts 400ms
+    return () => clearTimeout(t);
+  }, [loaded]);
 
   return (
     <>
-      <div
-        className={`slide-blur-up${loaded ? " hidden" : ""}`}
-        aria-hidden="true"
-      >
-        {slide.blur && <img src={slide.blur} alt=""/>}
-        <img src={slide.thumbnail} alt=""/>
-      </div>
+      {!blurGone && (
+        <div
+          className={`slide-blur-up${loaded ? " hidden" : ""}`}
+          aria-hidden="true"
+        >
+          {slide.blur && <img src={slide.blur} alt=""/>}
+          <img src={slide.thumbnail} alt=""/>
+        </div>
+      )}
       <ImageSlide
         slide={slide}
         offset={offset}
@@ -398,11 +482,27 @@ export default function Gallery() {
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
 
-  const toggleCaptions = () => {
+  const toggleCaptions = useCallback(() => {
     (captionsRef.current?.visible
       ? captionsRef.current?.hide
       : captionsRef.current?.show)?.();
-  };
+  }, []);
+
+  // Stable identity: a new render function each Gallery render (which happens
+  // per swipe for the URL sync) would make yarl re-render every mounted slide
+  const renderLightbox = useMemo(
+    () => ({
+      slide: ({slide, offset, rect}) => (
+        <BlurUpSlide
+          slide={slide}
+          offset={offset}
+          rect={rect}
+          onClick={offset === 0 ? toggleCaptions : undefined}
+        />
+      ),
+    }),
+    [toggleCaptions],
+  );
 
   const showShareToast = (message) => {
     setShareToast(message);
@@ -434,9 +534,13 @@ export default function Gallery() {
     }
   };
 
-  const openLightbox = (id) => {
-    navigate(`${location.pathname}?photo=${id}`, {replace: false});
-  };
+  // Stable identity so the memoized GalleryItems skip the per-swipe re-renders
+  const openLightbox = useCallback(
+    (id) => {
+      navigate(`${location.pathname}?photo=${id}`, {replace: false});
+    },
+    [navigate, location.pathname],
+  );
 
   const closeLightbox = () => {
     if (new URLSearchParams(location.search).get("photo")) {
@@ -477,7 +581,7 @@ export default function Gallery() {
               key={photo.id}
               photo={photo}
               index={index}
-              onOpen={() => openLightbox(photo.id)}
+              onOpen={openLightbox}
             />
           ))}
         </div>
@@ -497,30 +601,11 @@ export default function Gallery() {
 
       {currentIndex >= 0 && (
         <Lightbox
-          slides={photos.map((photo) => ({
-            src: photo.src,
-            // width/height also feed the Zoom plugin's max-zoom computation
-            width: photo.width,
-            height: photo.height,
-            // The webp variant is what the gallery <picture> already
-            // downloaded, so the filmstrip and blur-up hit the browser cache
-            thumbnail: photo.thumbnailWebp ?? photo.thumbnail,
-            blur: photo.blur,
-            description: buildCaption(photo),
-          }))}
+          slides={lightboxSlides}
           // Default preload (2 per side) downloads 4 fullsize photos in the
           // background; 1 per side keeps prev/next instant at half the traffic
           carousel={{preload: 1}}
-          render={{
-            slide: ({slide, offset, rect}) => (
-              <BlurUpSlide
-                slide={slide}
-                offset={offset}
-                rect={rect}
-                onClick={offset === 0 ? toggleCaptions : undefined}
-              />
-            ),
-          }}
+          render={renderLightbox}
           plugins={[Zoom, Captions, Counter, Thumbnails]}
           open={true}
           close={closeLightbox}
@@ -529,6 +614,36 @@ export default function Gallery() {
           controller={{closeOnBackdropClick: true, closeOnPullDown: true}}
           toolbar={{
             buttons: [
+              <button
+                key="hq"
+                type="button"
+                className="yarl__button"
+                title="Apri in alta qualità"
+                aria-label="Apri la foto in alta qualità in una nuova scheda"
+                onClick={() =>
+                  window.open(
+                    photos[currentIndex].original ?? photos[currentIndex].src,
+                    "_blank",
+                    "noopener",
+                  )
+                }
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="2.5" y="5" width="19" height="14" rx="2.5"/>
+                  <path d="M6.5 9v6M10.5 9v6M6.5 12h4"/>
+                  <circle cx="15.9" cy="11.6" r="2.4"/>
+                  <path d="M17.2 13.2l1.4 1.6"/>
+                </svg>
+              </button>,
               <button
                 key="info"
                 type="button"
@@ -595,7 +710,13 @@ export default function Gallery() {
             view: ({index}) => {
               const nextId = photos[index].id;
               setCurrentPhotoId(nextId);
-              navigate(`${location.pathname}?photo=${nextId}`, {replace: true});
+              // Low-priority URL sync: the router re-render must not compete
+              // with the swipe animation for main-thread time
+              startTransition(() => {
+                navigate(`${location.pathname}?photo=${nextId}`, {
+                  replace: true,
+                });
+              });
             },
           }}
         />

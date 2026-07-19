@@ -1,11 +1,5 @@
 [
   {
-    "filename": "IMG_2971",
-    "title": "Aironi Cenerini",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
     "filename": "IMG_2990",
     "title": "Aironi Cenerini",
     "species": "Ardea cinerea",
@@ -49,12 +43,6 @@
     "description": ""
   },
   {
-    "filename": "IMG_3511",
-    "title": "Garzetta",
-    "species": "Egretta garzetta",
-    "description": ""
-  },
-  {
     "filename": "IMG_3807",
     "title": "Airone Rosso",
     "species": "Ardea purpurea",
@@ -79,31 +67,13 @@
     "description": ""
   },
   {
-    "filename": "IMG_4087",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
     "filename": "IMG_4188",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
     "description": ""
   },
   {
-    "filename": "IMG_4198",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
     "filename": "IMG_4344",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
-    "filename": "IMG_4399",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
     "description": ""
@@ -130,7 +100,8 @@
     "filename": "IMG_5321",
     "title": "Aironi Bianchi Maggiori",
     "species": "Ardea alba",
-    "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali."
+    "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali.",
+    "heroLarge": true
   },
   {
     "filename": "IMG_5470",
@@ -157,51 +128,15 @@
     "description": ""
   },
   {
-    "filename": "IMG_5790",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
-    "filename": "IMG_5730",
-    "title": "Ibis Sacro e Germano Reale",
-    "species": "Threskiornis aethiopicus · Anas platyrhynchos",
-    "description": ""
-  },
-  {
-    "filename": "IMG_5801",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
     "filename": "IMG_5793",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
     "description": ""
   },
   {
-    "filename": "IMG_5797",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
-    "description": ""
-  },
-  {
-    "filename": "IMG_4937",
-    "title": "Fagiano",
-    "species": "Phasianus colchicus",
-    "description": ""
-  },
-  {
     "filename": "IMG_5849",
     "title": "Parrocchetti",
     "species": "Psittacula krameri",
-    "description": ""
-  },
-  {
-    "filename": "IMG_5872",
-    "title": "Airone Bianco Maggiore",
-    "species": "Ardea alba",
     "description": ""
   },
   {
@@ -232,6 +167,30 @@
     "filename": "IMG_7817",
     "title": "Piro Piro Piccolo",
     "species": "Actitis hypoleucos",
+    "description": ""
+  },
+  {
+    "filename": "IMG_4966",
+    "title": "Aironi Guardabuoi",
+    "species": "Bubulcus ibis",
+    "description": ""
+  },
+  {
+    "filename": "IMG_5754",
+    "title": "Airone Bianco Maggiore",
+    "species": "Ardea alba",
+    "description": ""
+  },
+  {
+    "filename": "IMG_7662",
+    "title": "Tortore Selvatiche",
+    "species": "Streptopelia turtur",
+    "description": ""
+  },
+  {
+    "filename": "IMG_7872",
+    "title": "Gruccione",
+    "species": "Merops apiaster",
     "description": ""
   }
 ]
