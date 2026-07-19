@@ -7,11 +7,118 @@
     visibility: hidden !important;
 }
 
+/* The overlay itself is fully transparent: the background is the
+   .lightbox-backdrop layer below (current photo hyper-blurred) */
+.yarl__root {
+    --yarl__color_backdrop: transparent;
+}
+
+/* Ambient backdrop: fullscreen blurred thumbnail of the current photo under
+   a dark overlay, sitting just below the yarl portal (z-index 9999) */
+.lightbox-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: #0b0c0b;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.lightbox-backdrop.shown {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox-backdrop img {
+    position: absolute;
+    /* Oversized so the blur never reveals fading edges */
+    inset: -8%;
+    width: 116%;
+    height: 116%;
+    object-fit: cover;
+    filter: blur(64px) saturate(120%) brightness(0.6);
+    opacity: 0;
+    animation: lightbox-backdrop-fade 0.5s ease forwards;
+}
+
+@keyframes lightbox-backdrop-fade {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Dark overlay on top of the blurred photo */
+.lightbox-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 12, 11, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lightbox-backdrop {
+        transition: none;
+    }
+
+    .lightbox-backdrop img {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* Frosted round close button */
+.yarl__toolbar {
+    padding: 14px;
+}
+
+.yarl__toolbar .yarl__button {
+    width: 44px;
+    height: 44px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(236, 233, 226, 0.08);
+    border: 1px solid rgba(236, 233, 226, 0.22);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.2s ease, color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.yarl__toolbar .yarl__button:hover {
+    border-color: rgba(201, 168, 106, 0.7);
+    background: rgba(236, 233, 226, 0.14);
+    color: #c9a86a;
+}
+
+/* Captions: no black bars, just text with a shadow (plus a soft gradient
+   under the description for legibility) */
+.yarl__slide_captions_container {
+    background: none;
+}
+
+.yarl__slide_title_container {
+    padding: 18px 22px;
+}
+
 .yarl__slide_title {
     font-family: "Cormorant Garamond", Georgia, serif;
     font-size: 26px;
     font-weight: 500;
     letter-spacing: 0.03em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.yarl__slide_description_container {
+    padding: 30px 22px 16px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
 }
 
 .yarl__slide_description {
@@ -19,4 +126,98 @@
     font-size: 14px;
     color: #cfccc4;
     line-height: 1.6;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.yarl__counter {
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: #cfccc4;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Filmstrip: dimmed thumbnails, gold border on the active one.
+   The container is fixed-width (5 thumbnails) with the edge fade on it,
+   not on the track: the track slides during navigation, so a mask on it
+   would drag the fade along and snap back — this way the strip scrolls
+   under a stationary fade, like a conveyor belt. */
+.yarl__thumbnails_container {
+    width: 530px; /* 5 × (96px + 2px border) + 4 × 10px gap */
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 14px 0 18px;
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 15%,
+        black 85%,
+        transparent
+    );
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 15%,
+        black 85%,
+        transparent
+    );
+}
+
+/* The slide is a WAAPI transform animation: promoting the track to its own
+   compositor layer keeps it smooth while the main thread decodes the
+   freshly-changed full-size photo */
+.yarl__thumbnails_track {
+    will-change: transform;
+}
+
+/* The plugin's enter/leave keyframes end at full opacity; ours must end at
+   the dimmed resting opacity or the new thumbnail pops from 1 to 0.45 */
+@keyframes yarl__thumbnails_thumbnail_fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 0.45;
+    }
+}
+
+@keyframes yarl__thumbnails_thumbnail_fadeout {
+    from {
+        opacity: 0.45;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.yarl__thumbnails_thumbnail {
+    --yarl__thumbnails_thumbnail_border_color: rgba(236, 233, 226, 0.18);
+    --yarl__thumbnails_thumbnail_active_border_color: #c9a86a;
+    border-radius: 6px;
+    background: #131513;
+    opacity: 0.45;
+    transition: opacity 0.25s ease, border-color 0.25s ease;
+}
+
+.yarl__thumbnails_thumbnail:hover,
+.yarl__thumbnails_thumbnail_active {
+    opacity: 1;
+}
+
+/* Smaller thumbnails on phones (element-level vars win over the inline
+   ones the plugin sets on the container) */
+@media (max-width: 640px) {
+    .yarl__thumbnails_container {
+        width: 402px; /* 5 × (72px + 2px border) + 4 × 8px gap */
+        padding: 10px 0 14px;
+    }
+
+    .yarl__thumbnails_track {
+        --yarl__thumbnails_thumbnail_gap: 8px;
+    }
+
+    .yarl__thumbnails_thumbnail {
+        --yarl__thumbnails_thumbnail_width: 72px;
+        --yarl__thumbnails_thumbnail_height: 48px;
+    }
 }

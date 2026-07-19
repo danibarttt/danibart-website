@@ -5,6 +5,10 @@ import {useNavigate, useLocation} from "react-router";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Captions from "yet-another-react-lightbox/plugins/captions";
 import "yet-another-react-lightbox/plugins/captions.css";
+import Counter from "yet-another-react-lightbox/plugins/counter";
+import "yet-another-react-lightbox/plugins/counter.css";
+import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
+import "yet-another-react-lightbox/plugins/thumbnails.css";
 import photos from "./photos";
 import "./lightbox.css";
 
@@ -44,6 +48,52 @@ function useReveal() {
 
 const heroPhoto = photos.find((p) => p.hero) ?? photos[0];
 
+const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
+
+// Frosted-glass nav + back-to-top button, both appear once the hero is scrolled past
+function StickyNav() {
+  const [shown, setShown] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShown(window.scrollY > window.innerHeight * 0.75);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? Math.min(window.scrollY / max, 1) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, {passive: true});
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <>
+      <nav className={`sticky-nav${shown ? " shown" : ""}`} inert={!shown}>
+        <button className="sticky-brand" onClick={scrollToTop}>
+          Daniele Bartorilla
+        </button>
+        <div className="nav-links">
+          <button onClick={() => scrollTo("galleria")}>Galleria</button>
+          <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
+          <button onClick={() => scrollTo("contatti")}>Contatti</button>
+        </div>
+        <div
+          className="nav-progress"
+          style={{transform: `scaleX(${progress})`}}
+        />
+      </nav>
+      <button
+        className={`to-top${shown ? " shown" : ""}`}
+        inert={!shown}
+        onClick={scrollToTop}
+        aria-label="Torna in cima"
+      >
+        ↑
+      </button>
+    </>
+  );
+}
+
 function Hero() {
   const [visible, setVisible] = useState(false);
   const [bgLoaded, setBgLoaded] = useState(false);
@@ -64,11 +114,12 @@ function Hero() {
         onLoad={() => setBgLoaded(true)}
       />
       <div className="hero-overlay"/>
+      <div className="hero-grain"/>
       <nav className="nav">
-        <span className="nav-brand">DB</span>
         <div className="nav-links">
           <button onClick={() => scrollTo("galleria")}>Galleria</button>
           <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
+          <button onClick={() => scrollTo("contatti")}>Contatti</button>
         </div>
       </nav>
       <div className={`hero-content${visible ? " visible" : ""}`}>
@@ -90,12 +141,15 @@ function Hero() {
   );
 }
 
-function GalleryItem({photo, onOpen}) {
+function GalleryItem({photo, index, onOpen}) {
   const [loaded, setLoaded] = useState(false);
+  const [ref, shown] = useReveal();
 
   return (
     <figure
-      className="gallery-item"
+      ref={ref}
+      className={`gallery-item reveal-item${shown ? " shown" : ""}`}
+      style={{transitionDelay: `${(index % 3) * 80}ms`}}
       onClick={onOpen}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
       tabIndex={0}
@@ -149,6 +203,64 @@ function About() {
   );
 }
 
+function Contacts() {
+  const [ref, shown] = useReveal();
+
+  return (
+    <section
+      id="contatti"
+      ref={ref}
+      className={`section contacts reveal${shown ? " shown" : ""}`}
+    >
+      <div className="section-header">
+        <p className="overline">Contatti</p>
+        <h2 className="section-title">Restiamo in contatto</h2>
+        <p className="section-sub">
+          Vuoi metterti in contatto con me? Scrivimi al seguente indirizzo email:
+        </p>
+      </div>
+      <a
+        className="contacts-email"
+        href="mailto:danielebartorilla@gmail.com"
+      >
+        danielebartorilla@gmail.com
+      </a>
+    </section>
+  );
+}
+
+// Fullscreen ambient backdrop for the lightbox: the current photo's
+// thumbnail hyper-blurred under a dark overlay, crossfading on navigation
+function LightboxBackdrop({photo}) {
+  const [layers, setLayers] = useState(photo ? [photo] : []);
+  const wasShown = useRef(false);
+
+  useEffect(() => {
+    if (photo) {
+      setLayers((prev) => {
+        if (!wasShown.current) return [photo];
+        if (prev[prev.length - 1]?.id === photo.id) return prev;
+        // Keep the outgoing layer so the incoming one can fade in over it
+        return [...prev.slice(-1), photo];
+      });
+      wasShown.current = true;
+    } else {
+      wasShown.current = false;
+    }
+  }, [photo]);
+
+  return (
+    <div
+      className={`lightbox-backdrop${photo ? " shown" : ""}`}
+      aria-hidden="true"
+    >
+      {layers.map((p) => (
+        <img key={p.id} src={p.thumbnail} alt=""/>
+      ))}
+    </div>
+  );
+}
+
 export default function Gallery() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -181,16 +293,22 @@ export default function Gallery() {
   return (
     <div>
       <Hero/>
+      <StickyNav/>
 
       <section id="galleria" className="section">
         <div className="section-header">
+          <p className="overline">Portfolio</p>
           <h2 className="section-title">Galleria</h2>
+          <p className="section-sub">
+            {photos.length} scatti tra risaie, lanche e garzaie
+          </p>
         </div>
         <div className="gallery-grid">
-          {photos.map((photo) => (
+          {photos.map((photo, index) => (
             <GalleryItem
               key={photo.id}
               photo={photo}
+              index={index}
               onOpen={() => openLightbox(photo.id)}
             />
           ))}
@@ -199,18 +317,40 @@ export default function Gallery() {
 
       <About/>
 
+      <Contacts/>
+
+      <LightboxBackdrop
+        photo={currentIndex >= 0 ? photos[currentIndex] : null}
+      />
+
       {currentIndex >= 0 && (
         <Lightbox
           slides={photos.map((photo) => ({
             src: photo.src,
+            thumbnail: photo.thumbnail,
             title: photo.title,
             description: photo.description || undefined,
           }))}
-          plugins={[Zoom, Captions]}
+          plugins={[Zoom, Captions, Counter, Thumbnails]}
           open={true}
           close={closeLightbox}
           index={currentIndex}
+          animation={{fade: 400, swipe: 450, navigation: 300}}
+          controller={{closeOnBackdropClick: true, closeOnPullDown: true}}
+          thumbnails={{
+            width: 96,
+            height: 64,
+            gap: 10,
+            padding: 0,
+            imageFit: "cover",
+            vignette: false,
+          }}
           captions={{ref: captionsRef}}
+          counter={{
+            container: {
+              style: {top: "unset", left: "unset", bottom: 0, right: 0},
+            },
+          }}
           on={{
             view: ({index}) => {
               const nextId = photos[index].id;
