@@ -218,8 +218,14 @@
   },
   {
     "filename": "IMG_6354",
-    "title": "Airone Cenerino",
-    "species": "Ardea cinerea",
+    "title": "Garzette",
+    "species": "Egretta garzetta",
+    "description": ""
+  },
+  {
+    "filename": "IMG_7817",
+    "title": "Piro Piro Piccolo",
+    "species": "Actitis hypoleucos",
     "description": ""
   }
 ]
