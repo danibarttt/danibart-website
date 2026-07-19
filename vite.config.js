@@ -5,10 +5,15 @@ export default defineConfig({
   plugins: [react()],
   base: '/',
   build: {
-    // Keep -webkit-backdrop-filter in the minified CSS: Safari only supports
-    // the unprefixed property from 18 on, and the default target lets the
-    // minifier strip the prefixed fallback (nav/drawer blur vanished on iOS)
-    cssTarget: 'safari15',
+    // Both backdrop-filter forms must reach production: Safari ≤17 only
+    // understands -webkit-backdrop-filter, Chrome/Firefox only the unprefixed
+    // one. Vite 8's CSS minifier (lightningcss) collapses the pair into a
+    // single form whatever the targets — with the default target it kept only
+    // the unprefixed one (blur gone on iOS), with a safari target only the
+    // -webkit- one (blur gone on Chrome/Android). CSS minification is
+    // disabled to keep both; gzip covers most of the size difference.
+    cssMinify: false,
+    cssTarget: ['chrome87', 'firefox78', 'safari15'],
   },
   server: {
     port: 3000,
