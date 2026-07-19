@@ -15,7 +15,8 @@
     "filename": "IMG_6501",
     "title": "Garzetta",
     "species": "Egretta garzetta",
-    "description": ""
+    "description": "",
+    "hero": true
   },
   {
     "filename": "IMG_6854",
@@ -213,8 +214,7 @@
     "filename": "IMG_6229",
     "title": "Airone Bianco Maggiore",
     "species": "Ardea alba",
-    "description": "",
-    "hero": true
+    "description": ""
   },
   {
     "filename": "IMG_6354",
