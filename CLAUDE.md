@@ -11,14 +11,16 @@ The page is: hero (the `hero: true` photo as background, in-page nav), gallery (
 ## Commands
 
 - `npm run dev` — start dev server on port 3000 (runs `generate-photos.js` first).
-- `npm run build` — runs `node src/generate-photos.js` then `vite build`.
+- `npm run build` — runs `node src/generate-photos.js`, `vite build`, then `node src/generate-social-pages.js` (post-build: per-photo Open Graph pages, see below).
 - Deploy is automatic: every push to `main` triggers `.github/workflows/deploy.yml`, which builds and force-pushes `dist/` as a single orphan commit to the `deploy` branch (the GitHub Pages source for https://danibart.it). There is no manual deploy script.
 
 ## Photo pipeline (the key architecture)
 
-Source JPGs live in `photos/` (committed). `src/generate-photos.js` uses sharp to produce `generated_photos/fullsize/` (quality 100), `generated_photos/thumbnails/` (600px wide, quality 70), and `generated_photos/hero/` (1920px wide, quality 78, only for `hero: true` entries — the hero background loads this, with the blurred thumbnail as instant placeholder). `generated_photos/` is gitignored — it must be regenerated locally, and the app fails to show photos without it.
+Source JPGs live in `photos/` (committed). `src/generate-photos.js` uses sharp to produce `generated_photos/fullsize/` (quality 100), `generated_photos/thumbnails/` (600px wide, jpg + webp — gallery `<picture>` prefers webp), `generated_photos/hero/` (1920px wide, jpg + webp, only for `hero: true` entries), `generated_photos/social/` (1200px wide, for the Open Graph pages), and `generated_photos/metadata.json` (per photo: pixel dimensions, a tiny base64 blur-up placeholder used by the gallery and hero, and shooting data parsed from EXIF via exif-reader — shown in the lightbox caption). `generated_photos/` is gitignored — it must be regenerated locally, and the app fails to show photos without it.
 
-`photos.json` (repo root) is the single manifest: a hand-maintained ordered array of `{filename, title, description}` entries (array order = gallery display order; `description` may be empty and shows in the lightbox caption when set). One entry may carry `"hero": true` to become the hero background (falls back to the first entry). `src/photos.jsx` imports it and resolves URLs via `import.meta.glob`. **Adding a photo requires two steps:** drop the `.jpg` in `photos/` AND add an entry to `photos.json`. Each photo gets a stable URL id derived from `title` + MD5 of the filename.
+`photos.json` (repo root) is the single manifest: a hand-maintained ordered array of `{filename, title, species, description}` entries (array order = gallery display order; `species` is the optional Latin name, shown in the hover caption and lightbox; `description` may be empty and shows in the lightbox caption when set). One entry may carry `"hero": true` to become the hero background (falls back to the first entry). `src/photos.jsx` imports it and resolves URLs via `import.meta.glob`. **Adding a photo requires two steps:** drop the `.jpg` in `photos/` AND add an entry to `photos.json`. Each photo gets a stable URL id derived from `title` + MD5 of the filename.
+
+`src/generate-social-pages.js` (run by `build` after vite) writes a static `dist/p/<id>/index.html` per photo with Open Graph tags (pointing at `dist/social/`) plus a redirect to the SPA deep link, and injects site-wide Open Graph tags into `dist/index.html`. The lightbox share button hands out these `/p/<id>/` URLs so shared links unfurl with the photo; it duplicates the id computation, so keep it in sync with `src/photos.jsx`.
 
 `src/generate-photos.js` (run by both `dev` and `build`) enforces a 1:1 match between `photos/*.jpg` and `photos.json` in both directions and aborts with a nonzero exit on any mismatch. Generation is incremental (skips existing outputs) and deletes stale outputs whose source photo was removed.
 ## Routing / lightbox

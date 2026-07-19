@@ -1,13 +1,17 @@
 const sharp = require("sharp");
+const exifReader = require("exif-reader");
 const fs = require("fs");
 const path = require("path");
 
 const manifest = require("../photos.json");
 
 const inputDir = path.join(process.cwd(), "photos");
-const thumbnailsOutputDir = path.join(process.cwd(), "generated_photos/thumbnails");
-const fullSizeOutputDir = path.join(process.cwd(), "generated_photos/fullsize");
-const heroOutputDir = path.join(process.cwd(), "generated_photos/hero");
+const outputRoot = path.join(process.cwd(), "generated_photos");
+const thumbnailsOutputDir = path.join(outputRoot, "thumbnails");
+const fullSizeOutputDir = path.join(outputRoot, "fullsize");
+const heroOutputDir = path.join(outputRoot, "hero");
+const socialOutputDir = path.join(outputRoot, "social");
+const metadataPath = path.join(outputRoot, "metadata.json");
 
 const files = fs.readdirSync(inputDir).filter(file => file.endsWith(".jpg"));
 
@@ -29,11 +33,14 @@ if (missingFromManifest.length > 0 || missingFromDir.length > 0) {
 fs.mkdirSync(thumbnailsOutputDir, { recursive: true });
 fs.mkdirSync(fullSizeOutputDir, { recursive: true });
 fs.mkdirSync(heroOutputDir, { recursive: true });
+fs.mkdirSync(socialOutputDir, { recursive: true });
 
-// Remove outputs whose source photo is gone, or Vite would still bundle them
-for (const dir of [thumbnailsOutputDir, fullSizeOutputDir]) {
+// Remove outputs whose source photo is gone, or Vite would still bundle them.
+// Outputs are matched by basename since thumbnails/hero also have .webp variants.
+const stem = file => file.replace(/\.(jpg|webp)$/, "");
+for (const dir of [thumbnailsOutputDir, fullSizeOutputDir, socialOutputDir]) {
   for (const file of fs.readdirSync(dir)) {
-    if (!files.includes(file)) {
+    if (!names.includes(stem(file))) {
       fs.unlinkSync(path.join(dir, file));
       console.log(`Removed stale output: ${file}`);
     }
@@ -42,45 +49,111 @@ for (const dir of [thumbnailsOutputDir, fullSizeOutputDir]) {
 
 // The hero background gets its own screen-sized derivative; only hero-flagged
 // entries need one, so stale files also include photos that lost the flag
-const heroFiles = manifest.filter(photo => photo.hero).map(photo => `${photo.filename}.jpg`);
+const heroNames = manifest.filter(photo => photo.hero).map(photo => photo.filename);
 for (const file of fs.readdirSync(heroOutputDir)) {
-  if (!heroFiles.includes(file)) {
+  if (!heroNames.includes(stem(file))) {
     fs.unlinkSync(path.join(heroOutputDir, file));
     console.log(`Removed stale hero output: ${file}`);
   }
 }
 
-for (const file of heroFiles) {
-  const heroOutputPath = path.join(heroOutputDir, file);
-  if (!fs.existsSync(heroOutputPath)) {
-    sharp(path.join(inputDir, file))
-      .resize({ width: 1920 })
-      .jpeg({ quality: 78, mozjpeg: true })
-      .toFile(heroOutputPath)
-      .then(() => console.log(`Hero created: ${file}`))
-      .catch(err => console.error(err));
-  }
+const jobs = [];
+const generate = (outputPath, build, label) => {
+  if (fs.existsSync(outputPath)) return;
+  jobs.push(
+    build()
+      .toFile(outputPath)
+      .then(() => console.log(`${label}: ${path.basename(outputPath)}`))
+  );
+};
+
+for (const name of heroNames) {
+  const inputPath = path.join(inputDir, `${name}.jpg`);
+  generate(path.join(heroOutputDir, `${name}.jpg`), () =>
+    sharp(inputPath).resize({ width: 1920 }).jpeg({ quality: 78, mozjpeg: true }), "Hero created");
+  generate(path.join(heroOutputDir, `${name}.webp`), () =>
+    sharp(inputPath).resize({ width: 1920 }).webp({ quality: 70 }), "Hero webp created");
 }
 
-for (const file of files) {
-  const inputPath = path.join(inputDir, file);
-  const fullSizeOutputPath = path.join(fullSizeOutputDir, file);
-  const thumbnailsOutputPath = path.join(thumbnailsOutputDir, file);
-
-  if (!fs.existsSync(fullSizeOutputPath)) {
-    sharp(inputPath)
-      .jpeg({ quality: 100, mozjpeg: true })
-      .toFile(fullSizeOutputPath)
-      .then(() => console.log(`Full-size created: ${file}`))
-      .catch(err => console.error(err));
-  }
-
-  if (!fs.existsSync(thumbnailsOutputPath)) {
-    sharp(inputPath)
-      .resize({ width: 600 })
-      .jpeg({ quality: 70, mozjpeg: true })
-      .toFile(thumbnailsOutputPath)
-      .then(() => console.log(`Thumbnail created: ${file}`))
-      .catch(err => console.error(err));
-  }
+for (const name of names) {
+  const inputPath = path.join(inputDir, `${name}.jpg`);
+  generate(path.join(fullSizeOutputDir, `${name}.jpg`), () =>
+    sharp(inputPath).jpeg({ quality: 100, mozjpeg: true }), "Full-size created");
+  generate(path.join(thumbnailsOutputDir, `${name}.jpg`), () =>
+    sharp(inputPath).resize({ width: 600 }).jpeg({ quality: 70, mozjpeg: true }), "Thumbnail created");
+  generate(path.join(thumbnailsOutputDir, `${name}.webp`), () =>
+    sharp(inputPath).resize({ width: 600 }).webp({ quality: 74 }), "Thumbnail webp created");
+  // Social images back the per-photo Open Graph pages (see generate-social-pages.js)
+  generate(path.join(socialOutputDir, `${name}.jpg`), () =>
+    sharp(inputPath).resize({ width: 1200 }).jpeg({ quality: 75, mozjpeg: true }), "Social created");
 }
+
+// metadata.json: per photo, the pixel dimensions (to reserve gallery layout
+// before thumbnails load), a tiny base64 blur-up placeholder, and the shooting
+// data (camera, focal length, aperture, shutter, ISO) parsed from EXIF.
+// Incremental like the images: entries of already-known photos are kept as-is.
+const firstNumber = value => (Array.isArray(value) ? value[0] : value);
+
+async function extractMetadata(name) {
+  const inputPath = path.join(inputDir, `${name}.jpg`);
+  const info = await sharp(inputPath).metadata();
+  // EXIF orientations 5-8 are rotated 90°: displayed width/height are swapped
+  const swapped = (info.orientation ?? 1) >= 5;
+  const entry = {
+    width: swapped ? info.height : info.width,
+    height: swapped ? info.width : info.height,
+  };
+
+  if (info.exif) {
+    try {
+      const parsed = exifReader(info.exif);
+      const photoTags = parsed.Photo ?? {};
+      // These cameras write Make/Model inside the Photo IFD, where exif-reader
+      // only knows them by tag number (271/272)
+      const model = parsed.Image?.Model ?? photoTags["272"];
+      const exif = {
+        camera: model?.replace(/\0/g, "").trim() || undefined,
+        lens: photoTags.LensModel?.replace(/\0/g, "").trim() || undefined,
+        focalLength: photoTags.FocalLength,
+        fNumber: photoTags.FNumber && Math.round(photoTags.FNumber * 10) / 10,
+        exposureTime: photoTags.ExposureTime,
+        iso: firstNumber(photoTags.ISOSpeedRatings ?? photoTags.PhotographicSensitivity),
+      };
+      Object.keys(exif).forEach(key => exif[key] === undefined && delete exif[key]);
+      if (Object.keys(exif).length > 0) entry.exif = exif;
+    } catch (err) {
+      console.warn(`WARNING: could not parse EXIF of ${name}.jpg: ${err.message}`);
+    }
+  }
+
+  const blur = await sharp(inputPath)
+    .rotate() // bake in the EXIF orientation, lost in raw pixel output
+    .resize({ width: 24 })
+    .jpeg({ quality: 50 })
+    .toBuffer();
+  entry.blur = `data:image/jpeg;base64,${blur.toString("base64")}`;
+
+  console.log(`Metadata extracted: ${name}.jpg`);
+  return entry;
+}
+
+async function buildMetadata() {
+  let previous = {};
+  if (fs.existsSync(metadataPath)) {
+    try {
+      previous = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
+    } catch {
+      previous = {};
+    }
+  }
+  const metadata = {};
+  for (const name of names) {
+    metadata[name] = previous[name] ?? await extractMetadata(name);
+  }
+  fs.writeFileSync(metadataPath, JSON.stringify(metadata));
+}
+
+Promise.all([...jobs, buildMetadata()]).catch(err => {
+  console.error(err);
+  process.exit(1);
+});

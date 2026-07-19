@@ -104,15 +104,25 @@ function Hero() {
 
   return (
     <header className="hero">
-      {/* Blurred thumbnail shows instantly while the real background loads */}
-      <img className="hero-bg hero-bg-placeholder" src={heroPhoto.thumbnail} alt="" aria-hidden="true"/>
+      {/* Inline blur placeholder shows instantly while the real background loads */}
       <img
-        className={`hero-bg${bgLoaded ? " loaded" : ""}`}
-        src={heroPhoto.heroSrc ?? heroPhoto.src}
+        className="hero-bg hero-bg-placeholder"
+        src={heroPhoto.blur ?? heroPhoto.thumbnail}
         alt=""
         aria-hidden="true"
-        onLoad={() => setBgLoaded(true)}
       />
+      <picture>
+        {heroPhoto.heroWebp && (
+          <source srcSet={heroPhoto.heroWebp} type="image/webp"/>
+        )}
+        <img
+          className={`hero-bg${bgLoaded ? " loaded" : ""}`}
+          src={heroPhoto.heroSrc ?? heroPhoto.src}
+          alt=""
+          aria-hidden="true"
+          onLoad={() => setBgLoaded(true)}
+        />
+      </picture>
       <div className="hero-overlay"/>
       <div className="hero-grain"/>
       <nav className="nav">
@@ -156,14 +166,28 @@ function GalleryItem({photo, index, onOpen}) {
       role="button"
       aria-label={photo.title}
     >
-      <img
-        alt={photo.title}
-        src={photo.thumbnail}
-        loading="lazy"
-        className={loaded ? "loaded" : ""}
-        onLoad={() => setLoaded(true)}
-      />
-      <figcaption className="gallery-caption">{photo.title}</figcaption>
+      {/* Inline blur-up placeholder, covered by the thumbnail once it loads */}
+      <img className="gallery-placeholder" src={photo.blur} alt="" aria-hidden="true"/>
+      <picture>
+        {photo.thumbnailWebp && (
+          <source srcSet={photo.thumbnailWebp} type="image/webp"/>
+        )}
+        <img
+          alt={photo.title}
+          src={photo.thumbnail}
+          loading="lazy"
+          width={photo.width}
+          height={photo.height}
+          className={loaded ? "loaded" : ""}
+          onLoad={() => setLoaded(true)}
+        />
+      </picture>
+      <figcaption className="gallery-caption">
+        {photo.title}
+        {photo.species && (
+          <span className="gallery-caption-species">{photo.species}</span>
+        )}
+      </figcaption>
     </figure>
   );
 }
@@ -196,7 +220,7 @@ function About() {
           Scatto principalmente nel Pavese, tra risaie, lanche e garzaie. Mi
           piace fotografare la natura nelle prime ore del mattino o al
           tramonto, quando la luce è più morbida. In questo sito raccolgo le
-          foto a cui tengo di più, spero vi piacciano!
+          foto a cui tengo di più, spero ti piacciano!
         </p>
       </div>
     </section>
@@ -226,6 +250,34 @@ function Contacts() {
         danielebartorilla@gmail.com
       </a>
     </section>
+  );
+}
+
+const formatExposure = (seconds) =>
+  seconds >= 1 ? `${seconds}s` : `1/${Math.round(1 / seconds)}s`;
+
+// Lightbox caption, all in the bottom block: photo title, species name,
+// optional description, and the shooting data extracted from EXIF by the
+// photo pipeline
+function buildCaption(photo) {
+  const exif = photo.exif ?? {};
+  const exifParts = [
+    exif.camera,
+    exif.focalLength && `${exif.focalLength}mm`,
+    exif.fNumber && `ƒ/${exif.fNumber}`,
+    exif.exposureTime && formatExposure(exif.exposureTime),
+    exif.iso && `ISO ${exif.iso}`,
+  ].filter(Boolean);
+
+  return (
+    <>
+      <span className="caption-title">{photo.title}</span>
+      {photo.species && <span className="caption-species">{photo.species}</span>}
+      {photo.description && <span className="caption-text">{photo.description}</span>}
+      {exifParts.length > 0 && (
+        <span className="caption-exif">{exifParts.join(" · ")}</span>
+      )}
+    </>
   );
 }
 
@@ -266,6 +318,37 @@ export default function Gallery() {
   const location = useLocation();
   const [currentPhotoId, setCurrentPhotoId] = useState(null);
   const captionsRef = useRef(null);
+  const [shareToast, setShareToast] = useState(null);
+  const shareToastTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(shareToastTimer.current), []);
+
+  const showShareToast = (message) => {
+    setShareToast(message);
+    clearTimeout(shareToastTimer.current);
+    shareToastTimer.current = setTimeout(() => setShareToast(null), 2400);
+  };
+
+  const sharePhoto = async (photo) => {
+    // The /p/<id>/ pages are static stubs with Open Graph tags (built by
+    // generate-social-pages.js) that bounce back into the app, so shared
+    // links unfurl with the photo on WhatsApp & co.
+    const url = `${window.location.origin}/p/${photo.id}/`;
+    if (navigator.share) {
+      try {
+        await navigator.share({title: photo.title, url});
+      } catch {
+        // sharing canceled
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showShareToast("Link copiato negli appunti");
+    } catch {
+      showShareToast("Copia del link non riuscita");
+    }
+  };
 
   const openLightbox = (id) => {
     navigate(`${location.pathname}?photo=${id}`, {replace: false});
@@ -323,13 +406,16 @@ export default function Gallery() {
         photo={currentIndex >= 0 ? photos[currentIndex] : null}
       />
 
+      <div className={`share-toast${shareToast ? " shown" : ""}`} role="status">
+        {shareToast}
+      </div>
+
       {currentIndex >= 0 && (
         <Lightbox
           slides={photos.map((photo) => ({
             src: photo.src,
             thumbnail: photo.thumbnail,
-            title: photo.title,
-            description: photo.description || undefined,
+            description: buildCaption(photo),
           }))}
           plugins={[Zoom, Captions, Counter, Thumbnails]}
           open={true}
@@ -337,6 +423,60 @@ export default function Gallery() {
           index={currentIndex}
           animation={{fade: 400, swipe: 450, navigation: 300}}
           controller={{closeOnBackdropClick: true, closeOnPullDown: true}}
+          toolbar={{
+            buttons: [
+              <button
+                key="info"
+                type="button"
+                className="yarl__button"
+                title="Informazioni"
+                aria-label="Mostra o nascondi i dati della foto"
+                onClick={() => {
+                  (captionsRef.current?.visible
+                    ? captionsRef.current?.hide
+                    : captionsRef.current?.show)?.();
+                }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                >
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 11v5"/>
+                  <path d="M12 7.6v.01"/>
+                </svg>
+              </button>,
+              <button
+                key="share"
+                type="button"
+                className="yarl__button"
+                title="Condividi"
+                aria-label="Condividi la foto"
+                onClick={() => sharePhoto(photos[currentIndex])}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                >
+                  <circle cx="6" cy="12" r="2.6"/>
+                  <circle cx="17.5" cy="5.5" r="2.6"/>
+                  <circle cx="17.5" cy="18.5" r="2.6"/>
+                  <path d="M8.4 10.9l6.7-4M8.4 13.1l6.7 4"/>
+                </svg>
+              </button>,
+              "close",
+            ],
+          }}
           thumbnails={{
             width: 96,
             height: 64,
@@ -345,7 +485,7 @@ export default function Gallery() {
             imageFit: "cover",
             vignette: false,
           }}
-          captions={{ref: captionsRef}}
+          captions={{ref: captionsRef, descriptionMaxLines: 6}}
           counter={{
             container: {
               style: {top: "unset", left: "unset", bottom: 0, right: 0},

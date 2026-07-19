@@ -7,6 +7,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^6.0.3",
     "crypto-js": "^4.2.0",
+    "exif-reader": "^2.0.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router": "^8.2.0",
@@ -16,7 +17,7 @@
   },
   "scripts": {
     "dev": "node src/generate-photos.js && vite",
-    "build": "node src/generate-photos.js && vite build",
+    "build": "node src/generate-photos.js && vite build && node src/generate-social-pages.js",
     "preview": "vite preview"
   }
 }
