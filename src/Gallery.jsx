@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef} from "react";
-import Lightbox from "yet-another-react-lightbox";
+import Lightbox, {ImageSlide} from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import {useNavigate, useLocation} from "react-router";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -50,8 +50,67 @@ const heroPhoto = photos.find((p) => p.hero) ?? photos[0];
 
 const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
 
+// On mobile the nav links collapse into this hamburger, which opens the NavDrawer
+function BurgerButton({onClick}) {
+  return (
+    <button className="nav-burger" onClick={onClick} aria-label="Apri il menu">
+      <span/>
+      <span/>
+      <span/>
+    </button>
+  );
+}
+
+// Mobile-only side drawer with the nav actions, opened by either nav's hamburger
+function NavDrawer({open, onClose}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+
+  // Defer the scroll one tick so the close re-render releases the body
+  // scroll lock first, otherwise scrollIntoView cannot move the page
+  const go = (id) => {
+    onClose();
+    setTimeout(() => scrollTo(id), 0);
+  };
+
+  return (
+    <div className={`nav-drawer-root${open ? " open" : ""}`} inert={!open}>
+      <div className="nav-drawer-backdrop" onClick={onClose}/>
+      <aside
+        className="nav-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu di navigazione"
+      >
+        <button
+          className="nav-drawer-close"
+          onClick={onClose}
+          aria-label="Chiudi il menu"
+        >
+          ×
+        </button>
+        <div className="nav-drawer-links">
+          <button onClick={() => go("galleria")}>Galleria</button>
+          <button onClick={() => go("chi-sono")}>Chi sono</button>
+          <button onClick={() => go("contatti")}>Contatti</button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 // Frosted-glass nav + back-to-top button, both appear once the hero is scrolled past
-function StickyNav() {
+function StickyNav({onMenuOpen}) {
   const [shown, setShown] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -77,24 +136,17 @@ function StickyNav() {
           <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
           <button onClick={() => scrollTo("contatti")}>Contatti</button>
         </div>
+        <BurgerButton onClick={onMenuOpen}/>
         <div
           className="nav-progress"
           style={{transform: `scaleX(${progress})`}}
         />
       </nav>
-      <button
-        className={`to-top${shown ? " shown" : ""}`}
-        inert={!shown}
-        onClick={scrollToTop}
-        aria-label="Torna in cima"
-      >
-        ↑
-      </button>
     </>
   );
 }
 
-function Hero() {
+function Hero({onMenuOpen}) {
   const [visible, setVisible] = useState(false);
   const [bgLoaded, setBgLoaded] = useState(false);
   useEffect(() => {
@@ -120,6 +172,7 @@ function Hero() {
           src={heroPhoto.heroSrc ?? heroPhoto.src}
           alt=""
           aria-hidden="true"
+          fetchPriority="high"
           onLoad={() => setBgLoaded(true)}
         />
       </picture>
@@ -131,6 +184,7 @@ function Hero() {
           <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
           <button onClick={() => scrollTo("contatti")}>Contatti</button>
         </div>
+        <BurgerButton onClick={onMenuOpen}/>
       </nav>
       <div className={`hero-content${visible ? " visible" : ""}`}>
         <h1>Daniele Bartorilla</h1>
@@ -140,13 +194,6 @@ function Hero() {
           attraverso l'obiettivo.
         </p>
       </div>
-      <button
-        className="scroll-hint"
-        onClick={() => scrollTo("galleria")}
-        aria-label="Vai alla galleria"
-      >
-        ↓
-      </button>
     </header>
   );
 }
@@ -176,6 +223,7 @@ function GalleryItem({photo, index, onOpen}) {
           alt={photo.title}
           src={photo.thumbnail}
           loading="lazy"
+          decoding="async"
           width={photo.width}
           height={photo.height}
           className={loaded ? "loaded" : ""}
@@ -307,9 +355,35 @@ function LightboxBackdrop({photo}) {
       aria-hidden="true"
     >
       {layers.map((p) => (
-        <img key={p.id} src={p.thumbnail} alt=""/>
+        <img key={p.id} src={p.thumbnailWebp ?? p.thumbnail} alt=""/>
       ))}
     </div>
+  );
+}
+
+// Blur-up for the lightbox: while the fullsize photo downloads, show the
+// thumbnail hyper-blurred (stacked over the inline base64 placeholder, which
+// paints instantly), then fade it out once the real image is in
+function BlurUpSlide({slide, offset, rect, onClick}) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <>
+      <div
+        className={`slide-blur-up${loaded ? " hidden" : ""}`}
+        aria-hidden="true"
+      >
+        {slide.blur && <img src={slide.blur} alt=""/>}
+        <img src={slide.thumbnail} alt=""/>
+      </div>
+      <ImageSlide
+        slide={slide}
+        offset={offset}
+        rect={rect}
+        onClick={onClick}
+        onLoad={() => setLoaded(true)}
+      />
+    </>
   );
 }
 
@@ -317,11 +391,18 @@ export default function Gallery() {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentPhotoId, setCurrentPhotoId] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const captionsRef = useRef(null);
   const [shareToast, setShareToast] = useState(null);
   const shareToastTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
+
+  const toggleCaptions = () => {
+    (captionsRef.current?.visible
+      ? captionsRef.current?.hide
+      : captionsRef.current?.show)?.();
+  };
 
   const showShareToast = (message) => {
     setShareToast(message);
@@ -375,8 +456,9 @@ export default function Gallery() {
 
   return (
     <div>
-      <Hero/>
-      <StickyNav/>
+      <Hero onMenuOpen={() => setMenuOpen(true)}/>
+      <StickyNav onMenuOpen={() => setMenuOpen(true)}/>
+      <NavDrawer open={menuOpen} onClose={() => setMenuOpen(false)}/>
 
       <section id="galleria" className="section">
         <div className="section-header">
@@ -414,9 +496,28 @@ export default function Gallery() {
         <Lightbox
           slides={photos.map((photo) => ({
             src: photo.src,
-            thumbnail: photo.thumbnail,
+            // width/height also feed the Zoom plugin's max-zoom computation
+            width: photo.width,
+            height: photo.height,
+            // The webp variant is what the gallery <picture> already
+            // downloaded, so the filmstrip and blur-up hit the browser cache
+            thumbnail: photo.thumbnailWebp ?? photo.thumbnail,
+            blur: photo.blur,
             description: buildCaption(photo),
           }))}
+          // Default preload (2 per side) downloads 4 fullsize photos in the
+          // background; 1 per side keeps prev/next instant at half the traffic
+          carousel={{preload: 1}}
+          render={{
+            slide: ({slide, offset, rect}) => (
+              <BlurUpSlide
+                slide={slide}
+                offset={offset}
+                rect={rect}
+                onClick={offset === 0 ? toggleCaptions : undefined}
+              />
+            ),
+          }}
           plugins={[Zoom, Captions, Counter, Thumbnails]}
           open={true}
           close={closeLightbox}
@@ -431,11 +532,7 @@ export default function Gallery() {
                 className="yarl__button"
                 title="Informazioni"
                 aria-label="Mostra o nascondi i dati della foto"
-                onClick={() => {
-                  (captionsRef.current?.visible
-                    ? captionsRef.current?.hide
-                    : captionsRef.current?.show)?.();
-                }}
+                onClick={toggleCaptions}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -485,7 +582,7 @@ export default function Gallery() {
             imageFit: "cover",
             vignette: false,
           }}
-          captions={{ref: captionsRef, descriptionMaxLines: 6}}
+          captions={{ref: captionsRef, hidden: true}}
           counter={{
             container: {
               style: {top: "unset", left: "unset", bottom: 0, right: 0},
@@ -496,11 +593,6 @@ export default function Gallery() {
               const nextId = photos[index].id;
               setCurrentPhotoId(nextId);
               navigate(`${location.pathname}?photo=${nextId}`, {replace: true});
-            },
-            click: () => {
-              (captionsRef.current?.visible
-                ? captionsRef.current?.hide
-                : captionsRef.current?.show)?.();
             },
           }}
         />

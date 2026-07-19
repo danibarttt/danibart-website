@@ -1,3 +1,38 @@
+/* ---------- Self-hosted fonts (latin subset, variable weight files) ---------- */
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-latin-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   --bg: #0b0c0b;
   --surface: #131513;
@@ -170,14 +205,21 @@ button:focus-visible,
   transition: transform 0.25s ease;
 }
 
-.nav-links button:hover::after,
 .nav-links button:focus-visible::after {
   transform: scaleX(1);
 }
 
-.nav-links button:hover {
-  opacity: 1;
-  color: var(--accent);
+/* Hover styles only on devices with a real pointer: on touch screens a tap
+   would leave them stuck on after the click */
+@media (hover: hover) {
+  .nav-links button:hover::after {
+    transform: scaleX(1);
+  }
+
+  .nav-links button:hover {
+    opacity: 1;
+    color: var(--accent);
+  }
 }
 
 .sticky-nav {
@@ -235,51 +277,111 @@ button:focus-visible,
   transition: color 0.2s ease;
 }
 
-.sticky-brand:hover {
-  color: var(--accent);
+@media (hover: hover) {
+  .sticky-brand:hover {
+    color: var(--accent);
+  }
 }
 
-.to-top {
+/* ---------- Mobile hamburger + drawer ---------- */
+
+/* Hidden on desktop; the max-width: 600px block swaps it in for .nav-links */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 42px;
+  height: 42px;
+  margin: -8px -10px;
+}
+
+.nav-burger span {
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--text);
+}
+
+/* Over the hero photo the lines need a shadow, like the text links */
+.nav .nav-burger span {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.nav-drawer-backdrop {
   position: fixed;
-  right: 22px;
-  bottom: 22px;
-  z-index: 20;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid rgba(236, 233, 226, 0.18);
-  background: linear-gradient(
-    to bottom,
-    rgba(236, 233, 226, 0.14),
-    rgba(236, 233, 226, 0.04)
-  );
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(236, 233, 226, 0.25),
-    0 8px 24px rgba(0, 0, 0, 0.35);
-  font-size: 18px;
-  line-height: 1;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.55);
   opacity: 0;
-  transform: translateY(10px);
   pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease, border-color 0.2s ease,
-    color 0.2s ease, background 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
-.to-top.shown {
+.nav-drawer-root.open .nav-drawer-backdrop {
   opacity: 1;
-  transform: none;
   pointer-events: auto;
 }
 
-.to-top:hover {
-  border-color: rgba(201, 168, 106, 0.55);
-  color: var(--accent);
+/* Horizontal glass sheet sliding down from the top edge */
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 28px 30px;
   background: linear-gradient(
     to bottom,
-    rgba(236, 233, 226, 0.2),
-    rgba(236, 233, 226, 0.07)
+    rgba(11, 12, 11, 0.72),
+    rgba(11, 12, 11, 0.45)
   );
+  border-bottom: 1px solid rgba(236, 233, 226, 0.12);
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  transform: translateY(-100%);
+  transition: transform 0.35s ease;
+}
+
+.nav-drawer-root.open .nav-drawer {
+  transform: none;
+}
+
+.nav-drawer-close {
+  align-self: flex-end;
+  width: 42px;
+  height: 42px;
+  margin-right: -14px;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .nav-drawer-close:hover {
+    color: var(--text);
+  }
+}
+
+.nav-drawer-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.nav-drawer-links button {
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 
 .hero-content {
@@ -326,30 +428,6 @@ button:focus-visible,
   font-size: clamp(14px, 1.5vw, 18px);
   margin: 16px 0 0;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 34px rgba(0, 0, 0, 0.9);
-}
-
-.scroll-hint {
-  position: absolute;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--text);
-  opacity: 0.7;
-  font-size: 22px;
-  animation: bounce 2.2s ease-in-out infinite;
-}
-
-.scroll-hint:hover {
-  opacity: 1;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translate(-50%, 0);
-  }
-  50% {
-    transform: translate(-50%, 8px);
-  }
 }
 
 /* ---------- Sections ---------- */
@@ -415,6 +493,9 @@ button:focus-visible,
 }
 
 .gallery-item img {
+  /* Positioned so it always paints above the absolutely-positioned blur
+     placeholder, even once the load transform settles to none */
+  position: relative;
   width: 100%;
   /* Keep height derived from the width/height attributes' aspect ratio, so
      unloaded lazy images already reserve their final space */
@@ -605,9 +686,11 @@ button:focus-visible,
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.contacts-email:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .contacts-email:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 .contacts-email:focus-visible {
@@ -643,6 +726,89 @@ button:focus-visible,
 
 .footer p {
   margin: 0;
+}
+
+.footer .footer-legal {
+  margin-top: 10px;
+}
+
+.footer-legal a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(168, 164, 154, 0.4);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .footer-legal a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* ---------- Legal pages (privacy / cookie policy) ---------- */
+
+.policy {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(90px, 12vw, 140px) 24px 40px;
+}
+
+.policy-back {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 34px;
+  transition: color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .policy-back:hover {
+    color: var(--accent);
+  }
+}
+
+.policy-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(34px, 5vw, 48px);
+  line-height: 1.1;
+  margin: 0 0 6px;
+}
+
+.policy-updated {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 36px;
+}
+
+.policy h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 24px;
+  margin: 34px 0 8px;
+}
+
+.policy p {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.policy a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(201, 168, 106, 0.45);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .policy a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 /* ---------- Responsive ---------- */
@@ -683,6 +849,15 @@ button:focus-visible,
   .hero {
     min-height: 78vh;
   }
+
+  /* Collapse the text links into the hamburger, in both navs */
+  .nav-links {
+    display: none;
+  }
+
+  .nav-burger {
+    display: flex;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -690,8 +865,7 @@ button:focus-visible,
     scroll-behavior: auto;
   }
 
-  .hero-bg,
-  .scroll-hint {
+  .hero-bg {
     animation: none;
   }
 
@@ -699,11 +873,12 @@ button:focus-visible,
   .reveal-item,
   .hero-content,
   .sticky-nav,
-  .to-top,
   .nav-links button::after,
   .gallery-item::before,
   .gallery-item::after,
-  .gallery-item img {
+  .gallery-item img,
+  .nav-drawer,
+  .nav-drawer-backdrop {
     transition: none;
   }
 }

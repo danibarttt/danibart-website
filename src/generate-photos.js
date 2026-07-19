@@ -77,8 +77,11 @@ for (const name of heroNames) {
 
 for (const name of names) {
   const inputPath = path.join(inputDir, `${name}.jpg`);
+  // q90 mozjpeg is visually transparent at screen resolution and 3-8x smaller
+  // than q100; mozjpeg also emits progressive scans, so the lightbox renders
+  // the photo incrementally while it downloads
   generate(path.join(fullSizeOutputDir, `${name}.jpg`), () =>
-    sharp(inputPath).jpeg({ quality: 100, mozjpeg: true }), "Full-size created");
+    sharp(inputPath).jpeg({ quality: 90, mozjpeg: true }), "Full-size created");
   generate(path.join(thumbnailsOutputDir, `${name}.jpg`), () =>
     sharp(inputPath).resize({ width: 600 }).jpeg({ quality: 70, mozjpeg: true }), "Thumbnail created");
   generate(path.join(thumbnailsOutputDir, `${name}.webp`), () =>

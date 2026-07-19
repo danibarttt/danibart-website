@@ -1,11 +1,20 @@
 import Gallery from "./Gallery";
 import {createHashRouter, RouterProvider} from 'react-router';
 import {Footer} from "./Footer";
+import {PrivacyPolicy, CookiePolicy} from "./Policies";
 
 const router = createHashRouter([
   {
     path: "/",
     element: <Gallery/>,
+  },
+  {
+    path: "/privacy",
+    element: <PrivacyPolicy/>,
+  },
+  {
+    path: "/cookie",
+    element: <CookiePolicy/>,
   },
 ]);
 

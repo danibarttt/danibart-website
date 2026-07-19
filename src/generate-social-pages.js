@@ -90,5 +90,24 @@ if (!indexHtml.includes("</head>")) {
   console.error("ERROR: dist/index.html has no </head> to inject Open Graph tags into");
   process.exit(1);
 }
-fs.writeFileSync(indexPath, indexHtml.replace("</head>", `${siteTags}  </head>`));
+
+// Preload the hero background (the LCP): without it the browser discovers the
+// image only after downloading and running the JS bundle. The hashed asset is
+// found by basename; the hero rendition is the largest webp with that stem
+// (the other candidate is the 600px thumbnail).
+let preloadTag = "";
+const assetsDir = path.join(distDir, "assets");
+const heroAsset = fs
+  .readdirSync(assetsDir)
+  .filter(file => file.startsWith(`${hero.filename}-`) && file.endsWith(".webp"))
+  .map(file => ({ file, size: fs.statSync(path.join(assetsDir, file)).size }))
+  .sort((a, b) => b.size - a.size)[0];
+if (heroAsset) {
+  preloadTag = `    <link rel="preload" as="image" type="image/webp" fetchpriority="high" href="/assets/${heroAsset.file}" />
+`;
+} else {
+  console.warn(`WARNING: no hero webp asset found for ${hero.filename}, skipping preload`);
+}
+
+fs.writeFileSync(indexPath, indexHtml.replace("</head>", `${preloadTag}${siteTags}  </head>`));
 console.log("Open Graph tags injected into dist/index.html");

@@ -69,6 +69,53 @@
     }
 }
 
+/* Blur-up under the fullsize slide: base64 placeholder (instant) with the
+   thumbnail stacked on top, both hyper-blurred, fading out once the real
+   image has loaded. Padding mirrors .yarl__slide so the contained blurred
+   layer lines up with where the fullsize image will appear. */
+.slide-blur-up {
+    position: absolute;
+    inset: 0;
+    padding: calc(
+        var(--yarl__carousel_padding_px, 0) * 1px + 100 /
+            (
+                var(--yarl__carousel_slides_count) * 100 +
+                    (var(--yarl__carousel_slides_count) - 1) *
+                    var(--yarl__carousel_spacing_percent, 0)
+            ) * var(--yarl__carousel_padding_percent, 0) * 1%
+    );
+    display: grid;
+    /* Definite 100% tracks: with auto tracks the imgs' height:100% would
+       resolve to auto and overflow the slide */
+    grid-template: 100% / 100%;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.slide-blur-up.hidden {
+    opacity: 0;
+}
+
+.slide-blur-up img {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: blur(32px) saturate(115%);
+}
+
+/* Soften the fullsize image swap over the blurred placeholder */
+.yarl__slide_image {
+    transition: opacity 0.35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slide-blur-up,
+    .yarl__slide_image {
+        transition: none;
+    }
+}
+
 /* Frosted round toolbar buttons (info, share, close) */
 .yarl__toolbar {
     padding: 14px;
@@ -93,10 +140,13 @@
         background-color 0.2s ease;
 }
 
-.yarl__toolbar .yarl__button:hover {
-    border-color: rgba(201, 168, 106, 0.7);
-    background: rgba(236, 233, 226, 0.14);
-    color: #c9a86a;
+/* Pointer devices only: on touch a tap would leave the hover style stuck */
+@media (hover: hover) {
+    .yarl__toolbar .yarl__button:hover {
+        border-color: rgba(201, 168, 106, 0.7);
+        background: rgba(236, 233, 226, 0.14);
+        color: #c9a86a;
+    }
 }
 
 /* Captions: no black bars, just text with a shadow (plus a soft gradient
@@ -107,11 +157,26 @@
 }
 
 .yarl__slide_description_container {
-    padding: 30px 22px 16px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+    /* Right padding reserves room for the counter pinned to the bottom-right
+       corner, so long caption lines wrap instead of running under it */
+    padding: 44px 96px 16px 22px;
+    /* Tall black scrim fading upward, so the caption stays readable over
+       bright/busy photos */
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.88),
+        rgba(0, 0, 0, 0.6) 55%,
+        rgba(0, 0, 0, 0.25) 80%,
+        transparent
+    );
 }
 
 .yarl__slide_description {
+    /* No line limit: undo the plugin's -webkit-box line clamp (default 3) */
+    display: block;
+    -webkit-line-clamp: unset;
+    /* The plugin hyphenates ("uc-cello"); prose lines are short enough not to */
+    hyphens: none;
     font-family: "Inter", sans-serif;
     font-size: 14px;
     color: #cfccc4;
@@ -145,6 +210,8 @@
 .caption-text {
     display: block;
     margin-top: 6px;
+    /* Personal notes can run long: keep prose lines readable */
+    max-width: 62ch;
 }
 
 .caption-exif {
@@ -254,9 +321,14 @@
     transition: opacity 0.25s ease, border-color 0.25s ease;
 }
 
-.yarl__thumbnails_thumbnail:hover,
 .yarl__thumbnails_thumbnail_active {
     opacity: 1;
+}
+
+@media (hover: hover) {
+    .yarl__thumbnails_thumbnail:hover {
+        opacity: 1;
+    }
 }
 
 /* Smaller thumbnails on phones (element-level vars win over the inline
