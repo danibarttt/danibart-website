@@ -235,6 +235,19 @@ button:focus-visible,
   align-items: center;
   justify-content: space-between;
   padding: 14px clamp(20px, 4vw, 56px);
+  border-bottom: 1px solid rgba(236, 233, 226, 0.08);
+  transform: translateY(-100%);
+  transition: transform 0.35s ease;
+}
+
+/* Background + blur live on a pseudo-element, not on the nav itself: Android
+   Chromium stops rendering backdrop-filter on the element that carries the
+   slide-in transform transition (crbug 1194050), leaving the bar see-through */
+.sticky-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: linear-gradient(
     to bottom,
     rgba(11, 12, 11, 0.82),
@@ -242,9 +255,6 @@ button:focus-visible,
   );
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border-bottom: 1px solid rgba(236, 233, 226, 0.08);
-  transform: translateY(-100%);
-  transition: transform 0.35s ease;
 }
 
 .sticky-nav.shown {
