@@ -143,7 +143,14 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
         0 4px 14px rgba(0, 0, 0, 0.35);
     transition: border-color 0.2s ease, color 0.2s ease,
-        background-color 0.2s ease;
+        background-color 0.2s ease, transform 0.15s ease;
+}
+
+/* Press feedback (the only feedback touch devices get, where :hover is inert) */
+.yarl__toolbar .yarl__button:active {
+    transform: scale(0.88);
+    border-color: rgba(201, 168, 106, 0.7);
+    background: rgba(236, 233, 226, 0.16);
 }
 
 /* Pointer devices only: on touch a tap would leave the hover style stuck */

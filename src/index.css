@@ -50,6 +50,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* Replace the default blue mobile tap flash with an accent-tinted one
+     (the property is inherited, so this covers every tappable element) */
+  -webkit-tap-highlight-color: rgba(201, 168, 106, 0.15);
 }
 
 body {
@@ -524,8 +527,11 @@ button:focus-visible,
   transition: none;
 }
 
-.gallery-item:hover img.loaded {
-  transform: scale(1.045);
+/* Pointer devices only: on touch a tap would leave the hover zoom stuck */
+@media (hover: hover) {
+  .gallery-item:hover img.loaded {
+    transform: scale(1.045);
+  }
 }
 
 .gallery-caption {
@@ -591,14 +597,25 @@ button:focus-visible,
   -webkit-mask-image: linear-gradient(to top, black 18%, transparent 58%);
 }
 
-.gallery-item:hover::before,
-.gallery-item:hover::after,
+/* Pointer devices only: on touch the tapped item kept its :hover state after
+   closing the lightbox, leaving the caption stuck on */
+@media (hover: hover) {
+  .gallery-item:hover::before,
+  .gallery-item:hover::after {
+    opacity: 1;
+  }
+
+  .gallery-item:hover .gallery-caption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .gallery-item:focus-visible::before,
 .gallery-item:focus-visible::after {
   opacity: 1;
 }
 
-.gallery-item:hover .gallery-caption,
 .gallery-item:focus-visible .gallery-caption {
   opacity: 1;
   transform: none;
