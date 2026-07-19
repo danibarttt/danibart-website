@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "node src/generate-photos.js && vite",
-    "build": "node src/generate-photos.js && vite build && node src/generate-social-pages.js",
+    "build": "node src/generate-photos.js && vite build && node src/generate-social-pages.mjs",
     "preview": "vite preview"
   }
 }

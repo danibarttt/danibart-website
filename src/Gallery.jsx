@@ -412,9 +412,12 @@ export default function Gallery() {
 
   const sharePhoto = async (photo) => {
     // The /p/<id>/ pages are static stubs with Open Graph tags (built by
-    // generate-social-pages.js) that bounce back into the app, so shared
-    // links unfurl with the photo on WhatsApp & co.
-    const url = `${window.location.origin}/p/${photo.id}/`;
+    // generate-social-pages.mjs) that bounce back into the app, so shared
+    // links unfurl with the photo on WhatsApp & co. They only exist in the
+    // built site, so in dev hand out the SPA deep link instead.
+    const url = import.meta.env.DEV
+      ? `${window.location.origin}/#/?photo=${photo.id}`
+      : `${window.location.origin}/p/${photo.id}/`;
     if (navigator.share) {
       try {
         await navigator.share({title: photo.title, url});

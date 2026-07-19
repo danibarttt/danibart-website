@@ -1,5 +1,5 @@
-import CryptoJS from "crypto-js";
 import photos from "../photos.json";
+import {photoId} from "./photo-id.mjs";
 import metadata from "../generated_photos/metadata.json";
 
 let urls = import.meta.glob('../generated_photos/fullsize/*.jpg', {eager: true, import: 'default'});
@@ -14,7 +14,7 @@ export default photos.map(photo => {
   const url = urls[`../generated_photos/fullsize/${photo.filename}.jpg`];
   const heroSrc = photo.hero ? heroUrls[`../generated_photos/hero/${photo.filename}.jpg`] : undefined;
   const heroWebp = photo.hero ? heroWebpUrls[`../generated_photos/hero/${photo.filename}.webp`] : undefined;
-  const id = `${photo.title.replace(/ /g, "-")}-${CryptoJS.MD5(photo.filename).toString()}`;
+  const id = photoId(photo);
   const meta = metadata[photo.filename] ?? {};
   return {
     src: url,
