@@ -1,4 +1,4 @@
-import CryptoJS from "crypto-js";
+import {md5} from "./md5.mjs";
 
 // Single source of truth for the per-photo URL id, shared by the app
 // (src/photos.jsx) and the post-build social pages script. Ids are baked
@@ -12,4 +12,4 @@ const slug = title =>
     .replace(/^-+|-+$/g, "");
 
 export const photoId = photo =>
-  `${slug(photo.title)}-${CryptoJS.MD5(photo.filename).toString()}`;
+  `${slug(photo.title)}-${md5(photo.filename)}`;
