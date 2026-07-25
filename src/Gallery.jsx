@@ -611,7 +611,15 @@ export default function Gallery() {
           close={closeLightbox}
           index={currentIndex}
           animation={{fade: 400, swipe: 450, navigation: 300}}
-          controller={{closeOnBackdropClick: true, closeOnPullDown: true}}
+          // Only the close button (and browser/hash back) should close the
+          // lightbox — pull gestures and backdrop clicks are easy to trigger
+          // by accident (e.g. pinch-to-zoom misread as a pull-down drag)
+          controller={{
+            closeOnBackdropClick: false,
+            closeOnPullDown: false,
+            closeOnPullUp: false,
+            closeOnEscape: false,
+          }}
           toolbar={{
             buttons: [
               <button
