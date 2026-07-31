@@ -273,12 +273,12 @@ function Hero({onMenuOpen}) {
 // Memoized: the whole Gallery re-renders on every lightbox navigation (the
 // URL sync re-renders the route), and 38 items re-rendering per swipe is
 // noticeable jank on phones
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const TWENTY_DAYS_MS = 20 * 24 * 60 * 60 * 1000;
 
 const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
   const [loaded, setLoaded] = useState(false);
   const [ref, shown] = useReveal();
-  const isNew = photo.dateTaken && Date.now() - new Date(photo.dateTaken).getTime() < THIRTY_DAYS_MS;
+  const isNew = photo.dateTaken && Date.now() - new Date(photo.dateTaken).getTime() < TWENTY_DAYS_MS;
 
   return (
     <figure
