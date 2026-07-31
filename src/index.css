@@ -479,12 +479,16 @@ button:focus-visible,
 
 /* ---------- Gallery ---------- */
 
-/* Columns are assigned in JS (round-robin, see distributeIntoColumns in
-   Gallery.jsx) rather than via CSS column-count, so the gallery order
-   (shooting date, most recent first) reads left-to-right across the top row
-   instead of column-major (CSS columns fill column 1 fully before column 2) */
+/* Columns are assigned in JS (greedy shortest-column packing, see
+   distributeIntoColumns in Gallery.jsx) rather than via CSS column-count, so
+   the gallery order (shooting date, most recent first) reads left-to-right
+   across the top row instead of column-major (CSS columns fill column 1
+   fully before column 2). align-items must stay flex-start: flex's default
+   stretch would pad each column out to the tallest one's height, leaving
+   invisible trailing space that pushes the section below it down. */
 .gallery-grid {
   display: flex;
+  align-items: flex-start;
   gap: 14px;
 }
 

@@ -78,10 +78,10 @@ function useHeroPhoto() {
   return isLarge ? heroLargePhoto : heroSmallPhoto;
 }
 
-// Masonry columns are laid out in JS (round-robin) rather than CSS column-count:
-// CSS columns fill column-major (all of column 1, then column 2, ...), which
-// would put the newest photos (gallery order is shooting date, most recent
-// first) all in the first column instead of spread across the top row.
+// Masonry columns are laid out in JS rather than CSS column-count: CSS columns
+// fill column-major (all of column 1, then column 2, ...), which would put the
+// newest photos (gallery order is shooting date, most recent first) all in
+// the first column instead of spread across the top row.
 // The breakpoint must match the .gallery-column width rule in index.css.
 const GALLERY_TWO_COL_QUERY = "(max-width: 1000px)";
 
@@ -101,8 +101,18 @@ function useGalleryColumnCount() {
 }
 
 function distributeIntoColumns(items, columnCount) {
+  // Greedy shortest-column packing (as in Pinterest-style masonry libraries):
+  // each photo goes to whichever column has the least accumulated height so
+  // far, estimated from its aspect ratio. Plain round-robin (by index) only
+  // balances item counts, not heights, so a run of tall portrait photos in
+  // one column left it visibly longer than the others.
   const columns = Array.from({length: columnCount}, () => []);
-  items.forEach((photo, index) => columns[index % columnCount].push({photo, index}));
+  const heights = Array(columnCount).fill(0);
+  items.forEach((photo, index) => {
+    const shortest = heights.indexOf(Math.min(...heights));
+    columns[shortest].push({photo, index});
+    heights[shortest] += (photo.height && photo.width) ? photo.height / photo.width : 1;
+  });
   return columns;
 }
 
