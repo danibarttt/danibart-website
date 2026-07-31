@@ -479,9 +479,21 @@ button:focus-visible,
 
 /* ---------- Gallery ---------- */
 
+/* Columns are assigned in JS (round-robin, see distributeIntoColumns in
+   Gallery.jsx) rather than via CSS column-count, so the gallery order
+   (shooting date, most recent first) reads left-to-right across the top row
+   instead of column-major (CSS columns fill column 1 fully before column 2) */
 .gallery-grid {
-  column-count: 3;
-  column-gap: 14px;
+  display: flex;
+  gap: 14px;
+}
+
+.gallery-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
 }
 
 .reveal-item {
@@ -497,8 +509,7 @@ button:focus-visible,
 
 .gallery-item {
   position: relative;
-  margin: 0 0 14px;
-  break-inside: avoid;
+  margin: 0;
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
@@ -570,6 +581,25 @@ button:focus-visible,
   font-size: 13px;
   letter-spacing: 0.04em;
   color: rgba(236, 233, 226, 0.75);
+}
+
+.gallery-badge-new {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(19, 21, 19, 0.4);
+  border: 1px solid rgba(236, 233, 226, 0.3);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
 /* Progressive blur in two stacked layers — a soft tall one and a stronger
@@ -841,10 +871,6 @@ button:focus-visible,
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1000px) {
-  .gallery-grid {
-    column-count: 2;
-  }
-
   .about {
     grid-template-columns: 1fr;
     max-width: 560px;
@@ -868,12 +894,12 @@ button:focus-visible,
     margin-bottom: 26px;
   }
 
-  .gallery-grid {
-    column-gap: 8px;
+  .gallery-grid,
+  .gallery-column {
+    gap: 8px;
   }
 
   .gallery-item {
-    margin-bottom: 8px;
     border-radius: 4px;
   }
 

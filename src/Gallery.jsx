@@ -78,6 +78,34 @@ function useHeroPhoto() {
   return isLarge ? heroLargePhoto : heroSmallPhoto;
 }
 
+// Masonry columns are laid out in JS (round-robin) rather than CSS column-count:
+// CSS columns fill column-major (all of column 1, then column 2, ...), which
+// would put the newest photos (gallery order is shooting date, most recent
+// first) all in the first column instead of spread across the top row.
+// The breakpoint must match the .gallery-column width rule in index.css.
+const GALLERY_TWO_COL_QUERY = "(max-width: 1000px)";
+
+function useGalleryColumnCount() {
+  const [count, setCount] = useState(
+    () => (window.matchMedia(GALLERY_TWO_COL_QUERY).matches ? 2 : 3),
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia(GALLERY_TWO_COL_QUERY);
+    const onChange = (e) => setCount(e.matches ? 2 : 3);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return count;
+}
+
+function distributeIntoColumns(items, columnCount) {
+  const columns = Array.from({length: columnCount}, () => []);
+  items.forEach((photo, index) => columns[index % columnCount].push({photo, index}));
+  return columns;
+}
+
 const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
 
 // On mobile the nav links collapse into this hamburger, which opens the NavDrawer
@@ -235,9 +263,12 @@ function Hero({onMenuOpen}) {
 // Memoized: the whole Gallery re-renders on every lightbox navigation (the
 // URL sync re-renders the route), and 38 items re-rendering per swipe is
 // noticeable jank on phones
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
 const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
   const [loaded, setLoaded] = useState(false);
   const [ref, shown] = useReveal();
+  const isNew = photo.dateTaken && Date.now() - new Date(photo.dateTaken).getTime() < THIRTY_DAYS_MS;
 
   return (
     <figure
@@ -267,6 +298,7 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
           onLoad={() => setLoaded(true)}
         />
       </picture>
+      {isNew && <span className="gallery-badge-new">Nuova</span>}
       <figcaption className="gallery-caption">
         {photo.title}
         {photo.species && (
@@ -479,6 +511,11 @@ export default function Gallery() {
   const captionsRef = useRef(null);
   const [shareToast, setShareToast] = useState(null);
   const shareToastTimer = useRef(null);
+  const galleryColumnCount = useGalleryColumnCount();
+  const galleryColumns = useMemo(
+    () => distributeIntoColumns(photos, galleryColumnCount),
+    [galleryColumnCount],
+  );
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
 
@@ -576,13 +613,17 @@ export default function Gallery() {
           </p>
         </div>
         <div className="gallery-grid">
-          {photos.map((photo, index) => (
-            <GalleryItem
-              key={photo.id}
-              photo={photo}
-              index={index}
-              onOpen={openLightbox}
-            />
+          {galleryColumns.map((column, columnIndex) => (
+            <div className="gallery-column" key={columnIndex}>
+              {column.map(({photo, index}) => (
+                <GalleryItem
+                  key={photo.id}
+                  photo={photo}
+                  index={index}
+                  onOpen={openLightbox}
+                />
+              ))}
+            </div>
           ))}
         </div>
       </section>

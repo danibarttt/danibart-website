@@ -143,12 +143,17 @@ async function extractMetadata(name) {
   const entry = {
     width: swapped ? info.height : info.width,
     height: swapped ? info.width : info.height,
+    dateTaken: null,
   };
 
   if (info.exif) {
     try {
       const parsed = exifReader(info.exif);
       const photoTags = parsed.Photo ?? {};
+      // Used to sort the gallery by shooting date (most recent first); falls
+      // back to the file's modify date tag when the shot date is missing
+      const dateTaken = photoTags.DateTimeOriginal ?? parsed.Image?.DateTime;
+      if (dateTaken instanceof Date && !isNaN(dateTaken)) entry.dateTaken = dateTaken.toISOString();
       // These cameras write Make/Model inside the Photo IFD, where exif-reader
       // only knows them by tag number (271/272)
       const model = parsed.Image?.Model ?? photoTags["272"];
@@ -189,12 +194,37 @@ async function buildMetadata() {
   }
   const metadata = {};
   for (const name of names) {
-    metadata[name] = previous[name] ?? await extractMetadata(name);
+    const cached = previous[name];
+    // Older cached entries predate the dateTaken field, so re-extract those
+    metadata[name] = cached && Object.prototype.hasOwnProperty.call(cached, "dateTaken")
+      ? cached
+      : await extractMetadata(name);
   }
   fs.writeFileSync(metadataPath, JSON.stringify(metadata));
+  return metadata;
 }
 
-Promise.all([...jobs, buildMetadata()]).catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+// Gallery display order tracks shooting date (most recent first); undated
+// photos (no EXIF) keep their relative order and sort after dated ones
+function sortManifestByDate(metadata) {
+  const sorted = [...manifest].sort((a, b) => {
+    const dateA = metadata[a.filename]?.dateTaken;
+    const dateB = metadata[b.filename]?.dateTaken;
+    if (dateA && dateB) return dateB.localeCompare(dateA);
+    if (dateA) return -1;
+    if (dateB) return 1;
+    return 0;
+  });
+  if (sorted.some((photo, i) => photo.filename !== manifest[i].filename)) {
+    fs.writeFileSync(manifestPath, JSON.stringify(sorted, null, 2) + "\n");
+    console.log("Reordered photos.json by shooting date (most recent first)");
+  }
+}
+
+const metadataPromise = buildMetadata();
+Promise.all([...jobs, metadataPromise])
+  .then(results => sortManifestByDate(results[results.length - 1]))
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
+  });

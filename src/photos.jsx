@@ -51,5 +51,6 @@ export default photos.map(photo => {
     height: meta.height,
     blur: meta.blur,
     exif: meta.exif,
+    dateTaken: meta.dateTaken,
   };
 });
