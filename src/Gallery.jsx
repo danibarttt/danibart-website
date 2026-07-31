@@ -100,6 +100,61 @@ function useGalleryColumnCount() {
   return count;
 }
 
+// Some entries list more than one species ("Egretta garzetta · Threskiornis
+// aethiopicus"), separated by "·" — split so each name filters independently
+const splitSpecies = (species) => species.split("·").map((s) => s.trim());
+
+// Filtering still keys off the Latin name (it's what photos.json carries),
+// but the chips show the Italian common name — this maps between the two.
+const SPECIES_IT = {
+  "Actitis hypoleucos": "Piro piro piccolo",
+  "Anser anser": "Oca selvatica",
+  "Ardea alba": "Airone bianco maggiore",
+  "Ardea cinerea": "Airone cenerino",
+  "Ardea purpurea": "Airone rosso",
+  "Bubulcus ibis": "Airone guardabuoi",
+  "Ciconia ciconia": "Cicogna",
+  "Egretta garzetta": "Garzetta",
+  "Gallinula chloropus": "Gallinella d'acqua",
+  "Merops apiaster": "Gruccione",
+  "Nycticorax nycticorax": "Nitticora",
+  "Phalacrocorax carbo": "Cormorano",
+  "Psittacula krameri": "Parrocchetto dal collare",
+  "Streptopelia turtur": "Tortora selvatica",
+  "Threskiornis aethiopicus": "Ibis sacro",
+};
+
+const allSpecies = Array.from(
+  new Set(photos.flatMap((p) => (p.species ? splitSpecies(p.species) : []))),
+).sort((a, b) =>
+  (SPECIES_IT[a] ?? a).localeCompare(SPECIES_IT[b] ?? b),
+);
+
+// Chip row above the gallery grid to filter by species (Italian common name;
+// filtering itself still matches the Latin name stored in photos.json).
+// "Tutte" clears the filter.
+function SpeciesFilter({active, onChange}) {
+  return (
+    <div className="species-filter" role="group" aria-label="Filtra per specie">
+      <button
+        className={`species-chip${active === null ? " active" : ""}`}
+        onClick={() => onChange(null)}
+      >
+        Tutte
+      </button>
+      {allSpecies.map((species) => (
+        <button
+          key={species}
+          className={`species-chip${active === species ? " active" : ""}`}
+          onClick={() => onChange(active === species ? null : species)}
+        >
+          {SPECIES_IT[species] ?? species}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function distributeIntoColumns(items, columnCount) {
   // Greedy shortest-column packing (as in Pinterest-style masonry libraries):
   // each photo goes to whichever column has the least accumulated height so
@@ -522,9 +577,19 @@ export default function Gallery() {
   const [shareToast, setShareToast] = useState(null);
   const shareToastTimer = useRef(null);
   const galleryColumnCount = useGalleryColumnCount();
+  const [activeSpecies, setActiveSpecies] = useState(null);
+  const filteredPhotos = useMemo(
+    () =>
+      activeSpecies
+        ? photos.filter(
+            (p) => p.species && splitSpecies(p.species).includes(activeSpecies),
+          )
+        : photos,
+    [activeSpecies],
+  );
   const galleryColumns = useMemo(
-    () => distributeIntoColumns(photos, galleryColumnCount),
-    [galleryColumnCount],
+    () => distributeIntoColumns(filteredPhotos, galleryColumnCount),
+    [galleryColumnCount, filteredPhotos],
   );
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
@@ -619,9 +684,12 @@ export default function Gallery() {
           <p className="overline">Portfolio</p>
           <h2 className="section-title">Galleria</h2>
           <p className="section-sub">
-            {photos.length} scatti tra risaie, lanche e garzaie
+            {activeSpecies
+              ? `${filteredPhotos.length} scatti di ${SPECIES_IT[activeSpecies] ?? activeSpecies}`
+              : `${photos.length} scatti tra risaie, lanche e garzaie`}
           </p>
         </div>
+        <SpeciesFilter active={activeSpecies} onChange={setActiveSpecies}/>
         <div className="gallery-grid">
           {galleryColumns.map((column, columnIndex) => (
             <div className="gallery-column" key={columnIndex}>

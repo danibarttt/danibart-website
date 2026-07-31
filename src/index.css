@@ -477,6 +477,39 @@ button:focus-visible,
   margin: 14px 0 0;
 }
 
+.species-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto clamp(28px, 4vw, 40px);
+  max-width: 900px;
+}
+
+.species-chip {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgba(236, 233, 226, 0.16);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.species-chip:hover {
+  color: var(--text);
+  border-color: rgba(236, 233, 226, 0.32);
+}
+
+.species-chip.active {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 /* ---------- Gallery ---------- */
 
 /* Columns are assigned in JS (greedy shortest-column packing, see
