@@ -305,6 +305,13 @@
     will-change: transform;
 }
 
+/* Same reasoning for the main swipe track: without this the browser only
+   promotes it to its own layer once the drag has already started, costing
+   the first frame or two of every swipe */
+.yarl__carousel {
+    will-change: transform;
+}
+
 /* The plugin's enter/leave keyframes end at full opacity; ours must end at
    the dimmed resting opacity or the new thumbnail pops from 1 to 0.45 */
 @keyframes yarl__thumbnails_thumbnail_fadein {

@@ -617,6 +617,8 @@ function BlurUpSlide({slide, offset, rect, onClick}) {
         rect={rect}
         onClick={onClick}
         onLoad={() => setLoaded(true)}
+        // Never let a still-decoding neighbor image block the swipe's paint
+        imageProps={{decoding: "async"}}
       />
     </>
   );
@@ -777,9 +779,13 @@ export default function Gallery() {
       {currentIndex >= 0 && (
         <Lightbox
           slides={lightboxSlides}
-          // Default preload (2 per side) downloads 4 fullsize photos in the
-          // background; 1 per side keeps prev/next instant at half the traffic
-          carousel={{preload: 1}}
+          // 1 per side only gives the next photo a single swipe's worth of
+          // head start to download before it's needed — too little on a
+          // slow connection or when flicking through several photos in a
+          // row, which shows as the blur-up placeholder still lingering.
+          // 2 per side doubles that head start at the cost of 2 more
+          // in-flight fullsize downloads.
+          carousel={{preload: 2}}
           render={renderLightbox}
           plugins={[Zoom, Captions, Counter, Thumbnails]}
           open={true}
