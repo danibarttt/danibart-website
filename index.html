@@ -8,6 +8,27 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#0b0c0b">
+    <!-- Runs before the first paint: a stored theme choice has to be on <html>
+         by the time the stylesheet applies, or an overridden page flashes the
+         device's theme first. No stored choice leaves the attribute off and
+         the prefers-color-scheme rules in index.css decide. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t === "light" || t === "dark") {
+            document.documentElement.setAttribute("data-theme", t);
+          }
+        } catch (e) {}
+        var light =
+          document.documentElement.getAttribute("data-theme") === "light" ||
+          (!document.documentElement.hasAttribute("data-theme") &&
+            matchMedia("(prefers-color-scheme: light)").matches);
+        document.documentElement.style.background = light ? "#f6f4ef" : "#0b0c0b";
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta && light) meta.setAttribute("content", "#f6f4ef");
+      })();
+    </script>
     <title>Daniele Bartorilla — Fotografia Naturalistica</title>
     <meta name="description" content="Fotografia naturalistica di Daniele Bartorilla: aironi e altri uccelli delle zone umide." />
     <link rel="canonical" href="https://danibart.it/" />
@@ -16,7 +37,9 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-latin.woff2">
     <script defer src="https://cloud.umami.is/script.js" data-website-id="3d4db7b2-32dd-4afa-82dc-3eb0efbe84d0"></script>
   </head>
-  <body style="background:#0b0c0b;color:#ece9e2;margin:0;font-family:sans-serif">
+  <!-- Background comes from the boot script above (it knows the theme); the
+       rest is the pre-stylesheet fallback it always was -->
+  <body style="margin:0;font-family:sans-serif">
     <div id="root"></div>
     <script type="module" src="src/main.jsx"></script>
   </body>

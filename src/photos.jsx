@@ -7,17 +7,21 @@ let slideUrls = import.meta.glob('../generated_photos/slides/*.jpg', {eager: tru
 let originalUrls = import.meta.glob('../generated_photos/original/*.jpg', {eager: true, import: 'default'});
 let thumbnailUrls = import.meta.glob('../generated_photos/thumbnails/*.jpg', {eager: true, import: 'default'});
 let thumbnailWebpUrls = import.meta.glob('../generated_photos/thumbnails/*.webp', {eager: true, import: 'default'});
+let thumbnailAvifUrls = import.meta.glob('../generated_photos/thumbnails/*.avif', {eager: true, import: 'default'});
 let heroUrls = import.meta.glob('../generated_photos/hero/*.jpg', {eager: true, import: 'default'});
 let heroWebpUrls = import.meta.glob('../generated_photos/hero/*.webp', {eager: true, import: 'default'});
+let heroAvifUrls = import.meta.glob('../generated_photos/hero/*.avif', {eager: true, import: 'default'});
 
 export default photos.map(photo => {
   const thumbnail = thumbnailUrls[`../generated_photos/thumbnails/${photo.filename}.jpg`];
   const thumbnailWebp = thumbnailWebpUrls[`../generated_photos/thumbnails/${photo.filename}.webp`];
+  const thumbnailAvif = thumbnailAvifUrls[`../generated_photos/thumbnails/${photo.filename}.avif`];
   const url = urls[`../generated_photos/fullsize/${photo.filename}.jpg`];
   const original = originalUrls[`../generated_photos/original/${photo.filename}.jpg`];
   const isHero = photo.hero || photo.heroSmall || photo.heroLarge;
   const heroSrc = isHero ? heroUrls[`../generated_photos/hero/${photo.filename}.jpg`] : undefined;
   const heroWebp = isHero ? heroWebpUrls[`../generated_photos/hero/${photo.filename}.webp`] : undefined;
+  const heroAvif = isHero ? heroAvifUrls[`../generated_photos/hero/${photo.filename}.avif`] : undefined;
   const id = photoId(photo);
   const meta = metadata[photo.filename] ?? {};
   // Downscaled lightbox renditions (generate-photos.js SLIDE_WIDTHS) plus the
@@ -38,8 +42,10 @@ export default photos.map(photo => {
     original,
     thumbnail,
     thumbnailWebp,
+    thumbnailAvif,
     heroSrc,
     heroWebp,
+    heroAvif,
     title: photo.title,
     species: photo.species,
     description: photo.description,

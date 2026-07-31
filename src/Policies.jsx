@@ -113,10 +113,23 @@ export function CookiePolicy() {
     <PolicyPage title="Cookie Policy" updated="31 luglio 2026">
       <h2>Questo sito non usa cookie</h2>
       <p>
-        Nessun cookie tecnico, di profilazione o di terze parti viene
-        installato sul tuo dispositivo, e non vengono usati strumenti
-        equivalenti come localStorage per tracciarti. Per questo motivo il
+        Nessun cookie, tecnico o di profilazione, viene installato sul tuo
+        dispositivo, né da questo sito né da terze parti. Per questo motivo il
         sito non mostra alcun banner di consenso.
+      </p>
+
+      <h2>Preferenza sul tema</h2>
+      <p>
+        L&apos;unico dato salvato sul tuo dispositivo è la scelta tra tema
+        chiaro e tema scuro, conservata nel localStorage del browser sotto la
+        voce <code>theme</code>. Serve soltanto a ricordare la tua preferenza
+        tra una visita e l&apos;altra: non contiene identificatori, non viene
+        inviata ad alcun server e non permette di riconoscerti o di seguirti
+        tra siti diversi. Trattandosi di una preferenza richiesta da te, non
+        necessita di consenso preventivo. Se non tocchi il pulsante del tema
+        non viene salvato nulla e il sito segue semplicemente l&apos;impostazione
+        chiaro/scuro del tuo dispositivo. Puoi cancellarla in qualsiasi momento
+        svuotando i dati del sito dalle impostazioni del browser.
       </p>
 
       <h2>Statistiche senza cookie</h2>
@@ -129,6 +142,9 @@ export function CookiePolicy() {
         è possibile risalire al singolo visitatore. Ulteriori dettagli nella{" "}
         <Link to="/privacy">Privacy Policy</Link>.
       </p>
+
+      <h2>Aggiornamento</h2>
+      <p>Ultima modifica di questa pagina: 31 luglio 2026.</p>
 
       <h2>Modifiche</h2>
       <p>

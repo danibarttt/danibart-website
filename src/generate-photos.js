@@ -52,8 +52,8 @@ fs.mkdirSync(heroOutputDir, { recursive: true });
 fs.mkdirSync(socialOutputDir, { recursive: true });
 
 // Remove outputs whose source photo is gone, or Vite would still bundle them.
-// Outputs are matched by basename since thumbnails/hero also have .webp variants.
-const stem = file => file.replace(/\.(jpg|webp)$/, "");
+// Outputs are matched by basename since thumbnails/hero also have .webp/.avif variants.
+const stem = file => file.replace(/\.(jpg|webp|avif)$/, "");
 for (const dir of [thumbnailsOutputDir, fullSizeOutputDir, originalOutputDir, socialOutputDir]) {
   for (const file of fs.readdirSync(dir)) {
     if (!names.includes(stem(file))) {
@@ -100,6 +100,11 @@ for (const name of heroNames) {
     sharp(inputPath).resize({ width: 1920 }).jpeg({ quality: 78, mozjpeg: true }), "Hero created");
   generate(path.join(heroOutputDir, `${name}.webp`), () =>
     sharp(inputPath).resize({ width: 1920 }).webp({ quality: 70 }), "Hero webp created");
+  // AVIF is ~30% smaller than webp at matching quality, and the hero is the
+  // LCP. effort 4 keeps a full regeneration in the tens of seconds rather
+  // than minutes; browsers without AVIF fall through to the webp <source>
+  generate(path.join(heroOutputDir, `${name}.avif`), () =>
+    sharp(inputPath).resize({ width: 1920 }).avif({ quality: 45, effort: 4 }), "Hero avif created");
 }
 
 for (const name of names) {
@@ -124,7 +129,9 @@ for (const name of names) {
     sharp(inputPath).resize({ width: 600 }).jpeg({ quality: 70, mozjpeg: true }), "Thumbnail created");
   generate(path.join(thumbnailsOutputDir, `${name}.webp`), () =>
     sharp(inputPath).resize({ width: 600 }).webp({ quality: 74 }), "Thumbnail webp created");
-  // Social images back the per-photo Open Graph pages (see generate-social-pages.js)
+  generate(path.join(thumbnailsOutputDir, `${name}.avif`), () =>
+    sharp(inputPath).resize({ width: 600 }).avif({ quality: 50, effort: 4 }), "Thumbnail avif created");
+  // Social images back the per-photo Open Graph pages (see generate-static-pages.mjs)
   generate(path.join(socialOutputDir, `${name}.jpg`), () =>
     sharp(inputPath).resize({ width: 1200 }).jpeg({ quality: 75, mozjpeg: true }), "Social created");
 }

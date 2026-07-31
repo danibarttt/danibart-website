@@ -11,13 +11,12 @@ import Lightbox, {ImageSlide} from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import {useNavigate, useLocation} from "react-router";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import Captions from "yet-another-react-lightbox/plugins/captions";
-import "yet-another-react-lightbox/plugins/captions.css";
-import Counter from "yet-another-react-lightbox/plugins/counter";
-import "yet-another-react-lightbox/plugins/counter.css";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import "yet-another-react-lightbox/plugins/thumbnails.css";
+import Slideshow from "yet-another-react-lightbox/plugins/slideshow";
 import photos from "./photos";
+import {collectSpecies, commonName, speciesSlug, splitSpecies} from "./species.mjs";
+import {activeTheme, setTheme as applyThemeChoice, watchSystemTheme} from "./theme.mjs";
 import "./lightbox.css";
 
 // Drop a src/profile.jpg (or .jpeg/.png) in the repo and it shows up automatically
@@ -57,7 +56,7 @@ function useReveal() {
 // Two hero photos may be designated in photos.json: heroSmall (narrow
 // viewports) and heroLarge (wide viewports, where object-fit: cover crops
 // tall photos the most). A plain hero: true photo backs both as fallback.
-// The breakpoint must match the preload media queries in generate-social-pages.mjs.
+// The breakpoint must match the preload media queries in generate-static-pages.mjs.
 const HERO_LARGE_QUERY = "(min-width: 1024px)";
 const heroFallback = photos.find((p) => p.hero) ?? photos[0];
 const heroSmallPhoto = photos.find((p) => p.heroSmall) ?? heroFallback;
@@ -100,35 +99,22 @@ function useGalleryColumnCount() {
   return count;
 }
 
-// Some entries list more than one species ("Egretta garzetta · Threskiornis
-// aethiopicus"), separated by "·" — split so each name filters independently
-const splitSpecies = (species) => species.split("·").map((s) => s.trim());
+const allSpecies = collectSpecies(photos);
+const speciesBySlug = new Map(allSpecies.map((s) => [speciesSlug(s), s]));
 
-// Filtering still keys off the Latin name (it's what photos.json carries),
-// but the chips show the Italian common name — this maps between the two.
-const SPECIES_IT = {
-  "Actitis hypoleucos": "Piro piro piccolo",
-  "Anser anser": "Oca selvatica",
-  "Ardea alba": "Airone bianco maggiore",
-  "Ardea cinerea": "Airone cenerino",
-  "Ardea purpurea": "Airone rosso",
-  "Bubulcus ibis": "Airone guardabuoi",
-  "Ciconia ciconia": "Cicogna",
-  "Egretta garzetta": "Garzetta",
-  "Gallinula chloropus": "Gallinella d'acqua",
-  "Merops apiaster": "Gruccione",
-  "Nycticorax nycticorax": "Nitticora",
-  "Phalacrocorax carbo": "Cormorano",
-  "Psittacula krameri": "Parrocchetto dal collare",
-  "Streptopelia turtur": "Tortora selvatica",
-  "Threskiornis aethiopicus": "Ibis sacro",
-};
+// EXIF DateTimeOriginal carries no timezone, so exif-reader hands back a Date
+// built as if it were UTC. Reading it back with the UTC accessors returns the
+// wall-clock time the camera recorded; the local ones would shift it by the
+// viewer's offset, which for a shot near midnight moves it into another day.
+const photoYear = (photo) =>
+  photo.dateTaken ? new Date(photo.dateTaken).getUTCFullYear() : null;
 
-const allSpecies = Array.from(
-  new Set(photos.flatMap((p) => (p.species ? splitSpecies(p.species) : []))),
-).sort((a, b) =>
-  (SPECIES_IT[a] ?? a).localeCompare(SPECIES_IT[b] ?? b),
-);
+// Shooting years present in the manifest, most recent first. Undated photos
+// (no EXIF) are unreachable through this filter, same as they sort last in
+// the gallery — the chip row only offers years that actually have photos.
+const allYears = Array.from(
+  new Set(photos.map(photoYear).filter(Boolean)),
+).sort((a, b) => b - a);
 
 // Chip row above the gallery grid to filter by species (Italian common name;
 // filtering itself still matches the Latin name stored in photos.json).
@@ -148,7 +134,38 @@ function SpeciesFilter({active, onChange}) {
           className={`species-chip${active === species ? " active" : ""}`}
           onClick={() => onChange(active === species ? null : species)}
         >
-          {SPECIES_IT[species] ?? species}
+          {commonName(species)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Second, narrower chip row: shooting year. Combines with the species filter
+// (both must match). Hidden when every photo was shot in the same year, where
+// the row would be a single chip that filters nothing.
+function YearFilter({active, onChange}) {
+  if (allYears.length < 2) return null;
+
+  return (
+    <div
+      className="species-filter year-filter"
+      role="group"
+      aria-label="Filtra per anno"
+    >
+      <button
+        className={`species-chip${active === null ? " active" : ""}`}
+        onClick={() => onChange(null)}
+      >
+        Sempre
+      </button>
+      {allYears.map((year) => (
+        <button
+          key={year}
+          className={`species-chip${active === year ? " active" : ""}`}
+          onClick={() => onChange(active === year ? null : year)}
+        >
+          {year}
         </button>
       ))}
     </div>
@@ -172,6 +189,71 @@ function distributeIntoColumns(items, columnCount) {
 }
 
 const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
+
+// Sun/moon toggle. The icon shows the theme the click switches *to* — a sun
+// while the page is dark — and the label spells that out, since either reading
+// of the icon is defensible.
+function ThemeToggle({label = false}) {
+  const [theme, setTheme] = useState(activeTheme);
+
+  useEffect(() => watchSystemTheme(setTheme), []);
+
+  const next = theme === "dark" ? "light" : "dark";
+  const switchTheme = () => {
+    applyThemeChoice(next);
+    setTheme(next);
+  };
+
+  return (
+    <button
+      className={`theme-toggle${label ? " theme-toggle-labelled" : ""}`}
+      onClick={switchTheme}
+      title={next === "light" ? "Passa al tema chiaro" : "Passa al tema scuro"}
+      aria-label={next === "light" ? "Passa al tema chiaro" : "Passa al tema scuro"}
+    >
+      {next === "light" ? (
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/>
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/>
+        </svg>
+      )}
+      {label && <span>{next === "light" ? "Tema chiaro" : "Tema scuro"}</span>}
+    </button>
+  );
+}
+
+// The nav mixes in-page sections (scrolled to) with routes (navigated to);
+// shared by the hero nav, the sticky nav and the mobile drawer so the three
+// never drift apart. onDone lets the drawer close itself first — the scroll
+// is deferred one tick so the close re-render releases the body scroll lock
+// before scrollIntoView runs.
+function NavLinks({onDone}) {
+  const navigate = useNavigate();
+
+  const toSection = (id) => {
+    onDone?.();
+    setTimeout(() => scrollTo(id), 0);
+  };
+
+  const toRoute = (path) => {
+    onDone?.();
+    navigate(path);
+  };
+
+  return (
+    <>
+      <button onClick={() => toSection("galleria")}>Galleria</button>
+      <button onClick={() => toRoute("/specie")}>Specie</button>
+      <button onClick={() => toRoute("/numeri")}>Numeri</button>
+      <button onClick={() => toSection("chi-sono")}>Chi sono</button>
+      <button onClick={() => toSection("contatti")}>Contatti</button>
+    </>
+  );
+}
 
 // On mobile the nav links collapse into this hamburger, which opens the NavDrawer
 function BurgerButton({onClick}) {
@@ -199,13 +281,6 @@ function NavDrawer({open, onClose}) {
     };
   }, [open, onClose]);
 
-  // Defer the scroll one tick so the close re-render releases the body
-  // scroll lock first, otherwise scrollIntoView cannot move the page
-  const go = (id) => {
-    onClose();
-    setTimeout(() => scrollTo(id), 0);
-  };
-
   return (
     <div className={`nav-drawer-root${open ? " open" : ""}`} inert={!open}>
       <div className="nav-drawer-backdrop" onClick={onClose}/>
@@ -223,9 +298,12 @@ function NavDrawer({open, onClose}) {
           ×
         </button>
         <div className="nav-drawer-links">
-          <button onClick={() => go("galleria")}>Galleria</button>
-          <button onClick={() => go("chi-sono")}>Chi sono</button>
-          <button onClick={() => go("contatti")}>Contatti</button>
+          <NavLinks onDone={onClose}/>
+        </div>
+        {/* Below 820px the nav links collapse into this drawer, and the theme
+            toggle comes with them — there is no room for it in the bar */}
+        <div className="nav-drawer-theme">
+          <ThemeToggle label/>
         </div>
       </aside>
     </div>
@@ -235,14 +313,9 @@ function NavDrawer({open, onClose}) {
 // Frosted-glass nav + back-to-top button, both appear once the hero is scrolled past
 function StickyNav({onMenuOpen}) {
   const [shown, setShown] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => {
-      setShown(window.scrollY > window.innerHeight * 0.75);
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(window.scrollY / max, 1) : 0);
-    };
+    const onScroll = () => setShown(window.scrollY > window.innerHeight * 0.75);
     onScroll();
     window.addEventListener("scroll", onScroll, {passive: true});
     return () => window.removeEventListener("scroll", onScroll);
@@ -255,15 +328,12 @@ function StickyNav({onMenuOpen}) {
           Daniele Bartorilla
         </button>
         <div className="nav-links">
-          <button onClick={() => scrollTo("galleria")}>Galleria</button>
-          <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
-          <button onClick={() => scrollTo("contatti")}>Contatti</button>
+          <NavLinks/>
         </div>
-        <BurgerButton onClick={onMenuOpen}/>
-        <div
-          className="nav-progress"
-          style={{transform: `scaleX(${progress})`}}
-        />
+        <div className="nav-actions">
+          <ThemeToggle/>
+          <BurgerButton onClick={onMenuOpen}/>
+        </div>
       </nav>
     </>
   );
@@ -290,7 +360,13 @@ function Hero({onMenuOpen}) {
         alt=""
         aria-hidden="true"
       />
+      {/* AVIF first, webp next: the preload injected by generate-static-pages.mjs
+          carries type="image/avif", so browsers that would skip it here skip
+          the preload too and no viewport ends up downloading two heroes */}
       <picture key={heroPhoto.id}>
+        {heroPhoto.heroAvif && (
+          <source srcSet={heroPhoto.heroAvif} type="image/avif"/>
+        )}
         {heroPhoto.heroWebp && (
           <source srcSet={heroPhoto.heroWebp} type="image/webp"/>
         )}
@@ -307,11 +383,12 @@ function Hero({onMenuOpen}) {
       <div className="hero-grain"/>
       <nav className="nav">
         <div className="nav-links">
-          <button onClick={() => scrollTo("galleria")}>Galleria</button>
-          <button onClick={() => scrollTo("chi-sono")}>Chi sono</button>
-          <button onClick={() => scrollTo("contatti")}>Contatti</button>
+          <NavLinks/>
         </div>
-        <BurgerButton onClick={onMenuOpen}/>
+        <div className="nav-actions">
+          <ThemeToggle/>
+          <BurgerButton onClick={onMenuOpen}/>
+        </div>
       </nav>
       <div className={`hero-content${visible ? " visible" : ""}`}>
         <h1>Daniele Bartorilla</h1>
@@ -335,20 +412,29 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
   const [ref, shown] = useReveal();
   const isNew = photo.dateTaken && Date.now() - new Date(photo.dateTaken).getTime() < TWENTY_DAYS_MS;
 
+  // A real <a href> to the photo's static page rather than a click handler on
+  // the figure: it is the only path from the home page to the /p/ pages a
+  // crawler can follow (the SPA otherwise opens photos purely in JS), and it
+  // makes cmd-click / "open in new tab" work. A plain click is intercepted and
+  // still opens the lightbox, so nothing changes for ordinary use.
+  const openHere = (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    onOpen(photo.id);
+  };
+
   return (
     <figure
       ref={ref}
       className={`gallery-item reveal-item${shown ? " shown" : ""}`}
       style={{transitionDelay: `${(index % 3) * 80}ms`}}
-      onClick={() => onOpen(photo.id)}
-      onKeyDown={(e) => e.key === "Enter" && onOpen(photo.id)}
-      tabIndex={0}
-      role="button"
-      aria-label={photo.title}
     >
       {/* Inline blur-up placeholder, covered by the thumbnail once it loads */}
       <img className="gallery-placeholder" src={photo.blur} alt="" aria-hidden="true"/>
       <picture>
+        {photo.thumbnailAvif && (
+          <source srcSet={photo.thumbnailAvif} type="image/avif"/>
+        )}
         {photo.thumbnailWebp && (
           <source srcSet={photo.thumbnailWebp} type="image/webp"/>
         )}
@@ -370,6 +456,12 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
           <span className="gallery-caption-species">{photo.species}</span>
         )}
       </figcaption>
+      <a
+        className="gallery-link"
+        href={`/p/${photo.id}/`}
+        onClick={openHere}
+        aria-label={photo.title}
+      />
     </figure>
   );
 });
@@ -489,39 +581,13 @@ function Contacts() {
   );
 }
 
-const formatExposure = (seconds) =>
-  seconds >= 1 ? `${seconds}s` : `1/${Math.round(1 / seconds)}s`;
-
-// Lightbox caption, all in the bottom block: photo title, species name,
-// optional description, and the shooting data extracted from EXIF by the
-// photo pipeline
-function buildCaption(photo) {
-  const exif = photo.exif ?? {};
-  const exifParts = [
-    exif.camera,
-    exif.focalLength && `${exif.focalLength}mm`,
-    exif.fNumber && `ƒ/${exif.fNumber}`,
-    exif.exposureTime && formatExposure(exif.exposureTime),
-    exif.iso && `ISO ${exif.iso}`,
-  ].filter(Boolean);
-
-  return (
-    <>
-      <span className="caption-title">{photo.title}</span>
-      {photo.species && <span className="caption-species">{photo.species}</span>}
-      {photo.description && <span className="caption-text">{photo.description}</span>}
-      {exifParts.length > 0 && (
-        <span className="caption-exif">{exifParts.join(" · ")}</span>
-      )}
-    </>
-  );
-}
-
-// The slides array is hoisted because its identity must be stable: the
-// lightbox resets its internal state (cutting the swipe animation short)
-// whenever it receives a new slides array, and Gallery re-renders on every
-// swipe to sync the ?photo= URL param
-const lightboxSlides = photos.map((photo) => ({
+// The slides array's identity must stay stable across swipes: the lightbox
+// resets its internal state (cutting the swipe animation short) whenever it
+// receives a new array, and Gallery re-renders on every swipe to sync the
+// ?photo= URL param. The mapping lives at module scope and the array is
+// memoized on the filtered photo list, so a new identity is produced only
+// when the filters actually change — never mid-swipe.
+const toSlide = (photo) => ({
   src: photo.src,
   // Downscaled renditions: phones fetch ~1280px instead of the multi-MB
   // full-resolution photo, which took seconds per swipe on cellular
@@ -533,8 +599,7 @@ const lightboxSlides = photos.map((photo) => ({
   // downloaded, so the filmstrip and blur-up hit the browser cache
   thumbnail: photo.thumbnailWebp ?? photo.thumbnail,
   blur: photo.blur,
-  description: buildCaption(photo),
-}));
+});
 
 // Fullscreen ambient backdrop for the lightbox: the current photo's tiny
 // blur placeholder stretched under a dark overlay, crossfading on navigation.
@@ -629,47 +694,63 @@ export default function Gallery() {
   const location = useLocation();
   const [currentPhotoId, setCurrentPhotoId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const captionsRef = useRef(null);
   const [shareToast, setShareToast] = useState(null);
   const shareToastTimer = useRef(null);
   const galleryColumnCount = useGalleryColumnCount();
-  const [activeSpecies, setActiveSpecies] = useState(null);
+
+  // The two filters live in the query string rather than in state: it makes a
+  // filtered view linkable (the species index points straight at one) and
+  // leaves a single source of truth, so there is no state/URL sync to keep.
+  const params = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search],
+  );
+  const activeSpecies = speciesBySlug.get(params.get("specie")) ?? null;
+  const yearParam = Number(params.get("anno"));
+  const activeYear = allYears.includes(yearParam) ? yearParam : null;
+
   const filteredPhotos = useMemo(
     () =>
-      activeSpecies
-        ? photos.filter(
-            (p) => p.species && splitSpecies(p.species).includes(activeSpecies),
-          )
-        : photos,
-    [activeSpecies],
+      photos.filter(
+        (p) =>
+          (!activeSpecies ||
+            (p.species && splitSpecies(p.species).includes(activeSpecies))) &&
+          (!activeYear || photoYear(p) === activeYear),
+      ),
+    [activeSpecies, activeYear],
   );
   const galleryColumns = useMemo(
     () => distributeIntoColumns(filteredPhotos, galleryColumnCount),
     [galleryColumnCount, filteredPhotos],
   );
+  const galleryCountLabel = useMemo(() => {
+    if (!activeSpecies && !activeYear) {
+      return `${photos.length} scatti tra risaie, lanche e garzaie`;
+    }
+    const count = filteredPhotos.length;
+    return [
+      count === 1 ? "1 scatto" : `${count} scatti`,
+      activeSpecies && `di ${commonName(activeSpecies)}`,
+      activeYear && `nel ${activeYear}`,
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }, [activeSpecies, activeYear, filteredPhotos.length]);
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
-
-  const toggleCaptions = useCallback(() => {
-    (captionsRef.current?.visible
-      ? captionsRef.current?.hide
-      : captionsRef.current?.show)?.();
-  }, []);
 
   // Stable identity: a new render function each Gallery render (which happens
   // per swipe for the URL sync) would make yarl re-render every mounted slide
   const renderLightbox = useMemo(
     () => ({
       slide: ({slide, offset, rect}) => (
-        <BlurUpSlide
-          slide={slide}
-          offset={offset}
-          rect={rect}
-          onClick={offset === 0 ? toggleCaptions : undefined}
-        />
+        <BlurUpSlide slide={slide} offset={offset} rect={rect}/>
       ),
+      // Drops the Zoom plugin's +/- toolbar buttons without dropping the
+      // plugin: pinch, double-tap, wheel and the arrow keys still zoom
+      buttonZoom: () => null,
     }),
-    [toggleCaptions],
+    [],
   );
 
   const showShareToast = (message) => {
@@ -680,7 +761,7 @@ export default function Gallery() {
 
   const sharePhoto = async (photo) => {
     // The /p/<id>/ pages are static stubs with Open Graph tags (built by
-    // generate-social-pages.mjs) that bounce back into the app, so shared
+    // generate-static-pages.mjs) that bounce back into the app, so shared
     // links unfurl with the photo on WhatsApp & co. They only exist in the
     // built site, so in dev hand out the SPA deep link instead.
     const url = import.meta.env.DEV
@@ -702,32 +783,91 @@ export default function Gallery() {
     }
   };
 
-  // Stable identity so the memoized GalleryItems skip the per-swipe re-renders
-  const openLightbox = useCallback(
-    (id) => {
-      navigate(`${location.pathname}?photo=${id}`, {replace: false});
+  // The HQ button lands on the photo's own /p/ page, which shows the shot at
+  // full resolution. Those pages exist only in the built site, so in dev —
+  // where they 404 — it falls back to opening the quality-100 rendition, the
+  // behaviour the button used to have everywhere.
+  const openHighDefinition = (photo) => {
+    if (import.meta.env.DEV) {
+      window.open(photo.original ?? photo.src, "_blank", "noopener");
+      return;
+    }
+    window.location.href = `/p/${photo.id}/`;
+  };
+
+  // Stable identity so the memoized GalleryItems skip the per-swipe re-renders.
+  // It has to read the live query string (to keep the active filters in the
+  // URL), which changes on every swipe — hence a ref rather than a dependency,
+  // which would give the callback a new identity per swipe and re-render all
+  // 32 items.
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  const navigateWithParams = useCallback(
+    (updates, options) => {
+      const {pathname, search} = locationRef.current;
+      const next = new URLSearchParams(search);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null) next.delete(key);
+        else next.set(key, String(value));
+      }
+      const query = next.toString();
+      navigate(pathname + (query ? `?${query}` : ""), options);
     },
-    [navigate, location.pathname],
+    [navigate],
+  );
+
+  const openLightbox = useCallback(
+    (id) => navigateWithParams({photo: id}, {replace: false}),
+    [navigateWithParams],
+  );
+
+  // replace: true so a run through the filter chips does not fill the back
+  // button with every intermediate selection
+  const setActiveSpecies = useCallback(
+    (species) =>
+      navigateWithParams(
+        {specie: species && speciesSlug(species)},
+        {replace: true},
+      ),
+    [navigateWithParams],
+  );
+
+  const setActiveYear = useCallback(
+    (year) => navigateWithParams({anno: year}, {replace: true}),
+    [navigateWithParams],
   );
 
   const closeLightbox = () => {
     if (new URLSearchParams(location.search).get("photo")) {
-      navigate(location.pathname, {replace: true});
+      navigateWithParams({photo: null}, {replace: true});
     }
     setCurrentPhotoId(null);
   };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const photoId = params.get("photo");
-    if (photoId) {
-      setCurrentPhotoId(photoId);
-    } else {
-      setCurrentPhotoId(null);
-    }
+    setCurrentPhotoId(params.get("photo"));
   }, [location.search]);
 
-  const currentIndex = photos.findIndex((p) => p.id === currentPhotoId);
+  // The lightbox walks the filtered set, so arrowing out of a "Gruccione"
+  // filter cannot land on a heron. A deep link to a photo the filters exclude
+  // (a shared /p/ link opened while a filter is set) falls back to the full
+  // list rather than showing nothing. Both branches return an existing array
+  // reference, so the identity stays stable while swiping.
+  const lightboxPhotos = useMemo(() => {
+    if (!currentPhotoId) return filteredPhotos;
+    return filteredPhotos.some((p) => p.id === currentPhotoId)
+      ? filteredPhotos
+      : photos;
+  }, [filteredPhotos, currentPhotoId]);
+
+  const lightboxSlides = useMemo(
+    () => lightboxPhotos.map(toSlide),
+    [lightboxPhotos],
+  );
+
+  const currentIndex = lightboxPhotos.findIndex((p) => p.id === currentPhotoId);
 
   return (
     <div>
@@ -741,27 +881,38 @@ export default function Gallery() {
         <div className="section-header">
           <p className="overline">Portfolio</p>
           <h2 className="section-title">Galleria</h2>
-          <p className="section-sub">
-            {activeSpecies
-              ? `${filteredPhotos.length} scatti di ${SPECIES_IT[activeSpecies] ?? activeSpecies}`
-              : `${photos.length} scatti tra risaie, lanche e garzaie`}
-          </p>
+          <p className="section-sub">{galleryCountLabel}</p>
         </div>
         <SpeciesFilter active={activeSpecies} onChange={setActiveSpecies}/>
-        <div className="gallery-grid">
-          {galleryColumns.map((column, columnIndex) => (
-            <div className="gallery-column" key={columnIndex}>
-              {column.map(({photo, index}) => (
-                <GalleryItem
-                  key={photo.id}
-                  photo={photo}
-                  index={index}
-                  onOpen={openLightbox}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
+        <YearFilter active={activeYear} onChange={setActiveYear}/>
+        {filteredPhotos.length === 0 ? (
+          <p className="gallery-empty">
+            Nessuno scatto con questi filtri.{" "}
+            <button
+              onClick={() => {
+                setActiveSpecies(null);
+                setActiveYear(null);
+              }}
+            >
+              Mostra tutti
+            </button>
+          </p>
+        ) : (
+          <div className="gallery-grid">
+            {galleryColumns.map((column, columnIndex) => (
+              <div className="gallery-column" key={columnIndex}>
+                {column.map(({photo, index}) => (
+                  <GalleryItem
+                    key={photo.id}
+                    photo={photo}
+                    index={index}
+                    onOpen={openLightbox}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <About/>
@@ -769,7 +920,7 @@ export default function Gallery() {
       <Contacts/>
 
       <LightboxBackdrop
-        photo={currentIndex >= 0 ? photos[currentIndex] : null}
+        photo={currentIndex >= 0 ? lightboxPhotos[currentIndex] : null}
       />
 
       <div className={`share-toast${shareToast ? " shown" : ""}`} role="status">
@@ -787,7 +938,7 @@ export default function Gallery() {
           // in-flight fullsize downloads.
           carousel={{preload: 2}}
           render={renderLightbox}
-          plugins={[Zoom, Captions, Counter, Thumbnails]}
+          plugins={[Zoom, Thumbnails, Slideshow]}
           open={true}
           close={closeLightbox}
           index={currentIndex}
@@ -801,67 +952,45 @@ export default function Gallery() {
             closeOnPullUp: false,
             closeOnEscape: false,
           }}
+          // The Slideshow plugin replaces the "slideshow" placeholder in place;
+          // without it in the array its button would be prepended, landing on
+          // the wrong side of the toolbar
           toolbar={{
             buttons: [
+              // Worded rather than an icon: it is the one control that leaves
+              // the lightbox, and no glyph said so. The arrow carries the
+              // "opens another page" part.
               <button
                 key="hq"
                 type="button"
-                className="yarl__button"
-                title="Apri in alta qualità"
-                aria-label="Apri la foto in alta qualità in una nuova scheda"
-                onClick={() =>
-                  window.open(
-                    photos[currentIndex].original ?? photos[currentIndex].src,
-                    "_blank",
-                    "noopener",
-                  )
-                }
+                className="yarl__button lightbox-details"
+                title="Apri la scheda della foto"
+                aria-label="Apri la scheda della foto, in alta definizione"
+                onClick={() => openHighDefinition(lightboxPhotos[currentIndex])}
               >
+                <span>Dettagli</span>
                 <svg
                   viewBox="0 0 24 24"
-                  width="22"
-                  height="22"
+                  width="16"
+                  height="16"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="1.7"
+                  strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  <rect x="2.5" y="5" width="19" height="14" rx="2.5"/>
-                  <path d="M6.5 9v6M10.5 9v6M6.5 12h4"/>
-                  <circle cx="15.9" cy="11.6" r="2.4"/>
-                  <path d="M17.2 13.2l1.4 1.6"/>
+                  <path d="M6.5 17.5 17.5 6.5M9.5 6.5h8v8"/>
                 </svg>
               </button>,
-              <button
-                key="info"
-                type="button"
-                className="yarl__button"
-                title="Informazioni"
-                aria-label="Mostra o nascondi i dati della foto"
-                onClick={toggleCaptions}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="22"
-                  height="22"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                >
-                  <circle cx="12" cy="12" r="9"/>
-                  <path d="M12 11v5"/>
-                  <path d="M12 7.6v.01"/>
-                </svg>
-              </button>,
+              "slideshow",
               <button
                 key="share"
                 type="button"
                 className="yarl__button"
                 title="Condividi"
                 aria-label="Condividi la foto"
-                onClick={() => sharePhoto(photos[currentIndex])}
+                onClick={() => sharePhoto(lightboxPhotos[currentIndex])}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -889,22 +1018,25 @@ export default function Gallery() {
             imageFit: "cover",
             vignette: false,
           }}
-          captions={{ref: captionsRef, hidden: true}}
-          counter={{
-            container: {
-              style: {top: "unset", left: "unset", bottom: 0, right: 0},
-            },
+          // 5s per photo: long enough to actually look at one, short enough
+          // that the whole catalog is not an evening's commitment
+          slideshow={{autoplay: false, delay: 5000}}
+          // yarl ships English titles/ARIA labels; the rest of the site is Italian
+          labels={{
+            Previous: "Precedente",
+            Next: "Successiva",
+            Close: "Chiudi",
+            Play: "Avvia la presentazione",
+            Pause: "Metti in pausa la presentazione",
           }}
           on={{
             view: ({index}) => {
-              const nextId = photos[index].id;
+              const nextId = lightboxPhotos[index].id;
               setCurrentPhotoId(nextId);
               // Low-priority URL sync: the router re-render must not compete
               // with the swipe animation for main-thread time
               startTransition(() => {
-                navigate(`${location.pathname}?photo=${nextId}`, {
-                  replace: true,
-                });
+                navigateWithParams({photo: nextId}, {replace: true});
               });
             },
           }}

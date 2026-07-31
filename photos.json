@@ -9,7 +9,8 @@
     "filename": "IMG_0189",
     "title": "Cormorano",
     "species": "Phalacrocorax carbo",
-    "description": "Il cormorano si asciuga le ali al sole come se avesse tutto il tempo del mondo, mentre due guardabuoi sfrecciano sullo sfondo."
+    "description": "Il cormorano si asciuga le ali al sole come se avesse tutto il tempo del mondo, mentre due guardabuoi sfrecciano sullo sfondo.",
+    "heroLarge": true
   },
   {
     "filename": "IMG_7872",
@@ -112,8 +113,7 @@
     "filename": "IMG_5321",
     "title": "Aironi Bianchi Maggiori",
     "species": "Ardea alba",
-    "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali.",
-    "heroLarge": true
+    "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali."
   },
   {
     "filename": "IMG_5319",

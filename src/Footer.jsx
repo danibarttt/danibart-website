@@ -8,6 +8,10 @@ export const Footer = () => {
       <p>© {year} Daniele Bartorilla. Tutti i diritti sul sito, relativi contenuti e foto sono riservati.</p>
       {/* Plain hash links: the footer lives outside the RouterProvider */}
       <p className="footer-legal">
+        <a href="#/specie">Specie</a>
+        <span aria-hidden="true"> · </span>
+        <a href="#/numeri">Numeri</a>
+        <span aria-hidden="true"> · </span>
         <a href="#/privacy">Privacy Policy</a>
         <span aria-hidden="true"> · </span>
         <a href="#/cookie">Cookie Policy</a>
