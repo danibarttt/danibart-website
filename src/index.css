@@ -759,6 +759,101 @@ button:focus-visible,
   transform: none;
 }
 
+/* ---------- Featured ---------- */
+
+.featured {
+  max-width: 1100px;
+}
+
+.featured-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  aspect-ratio: 16 / 9;
+}
+
+.featured-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(20px);
+  transform: scale(1.08);
+}
+
+.featured-img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.7s ease, transform 0.6s ease;
+}
+
+.featured-img.loaded {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .featured-card:hover .featured-img.loaded {
+    transform: scale(1.035);
+  }
+}
+
+.featured-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.78),
+    rgba(0, 0, 0, 0.18) 45%,
+    transparent 75%
+  );
+}
+
+.featured-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  padding: clamp(24px, 5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.featured-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 3.4vw, 36px);
+  color: var(--text);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85), 0 4px 14px rgba(0, 0, 0, 0.85), 0 8px 50px rgba(0, 0, 0, 0.9);
+}
+
+.featured-species {
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: rgba(236, 233, 226, 0.75);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 34px rgba(0, 0, 0, 0.9);
+}
+
+.featured-desc {
+  color: rgba(236, 233, 226, 0.85);
+  font-size: 15px;
+  max-width: 60ch;
+  margin-top: 4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9), 0 4px 24px rgba(0, 0, 0, 0.85);
+}
+
 /* ---------- Contacts ---------- */
 
 .contacts {
@@ -947,6 +1042,10 @@ button:focus-visible,
 
   .hero {
     min-height: 62vh;
+  }
+
+  .featured-card {
+    aspect-ratio: 4 / 5;
   }
 
   /* Collapse the text links into the hamburger, in both navs */

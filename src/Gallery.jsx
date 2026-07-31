@@ -374,6 +374,60 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
   );
 });
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Deterministic (not random) so every visitor sees the same photo within a
+// given week, and rotates through the whole catalog as it grows over time
+function getFeaturedPhoto() {
+  const weekIndex = Math.floor(Date.now() / WEEK_MS);
+  return photos[weekIndex % photos.length];
+}
+
+function Featured({onOpen}) {
+  const photo = useMemo(getFeaturedPhoto, []);
+  const [ref, shown] = useReveal();
+  const [loaded, setLoaded] = useState(false);
+  // The 1280px lightbox rendition is plenty for a banner this size, and
+  // already generated — no need for the multi-MB fullsize photo
+  const bannerSrc = photo.srcSet[0]?.src ?? photo.src;
+
+  return (
+    <section
+      ref={ref}
+      className={`section featured reveal${shown ? " shown" : ""}`}
+    >
+      <div className="section-header">
+        <p className="overline">Scatto della settimana</p>
+        <h2 className="section-title">In evidenza</h2>
+      </div>
+      <div
+        className="featured-card"
+        onClick={() => onOpen(photo.id)}
+        onKeyDown={(e) => e.key === "Enter" && onOpen(photo.id)}
+        tabIndex={0}
+        role="button"
+        aria-label={`Apri ${photo.title} nella galleria`}
+      >
+        <img className="featured-placeholder" src={photo.blur} alt="" aria-hidden="true"/>
+        <img
+          className={`featured-img${loaded ? " loaded" : ""}`}
+          src={bannerSrc}
+          alt={photo.species ? `${photo.title} (${photo.species})` : photo.title}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+        />
+        <div className="featured-overlay"/>
+        <div className="featured-text">
+          <span className="featured-title">{photo.title}</span>
+          {photo.species && <span className="featured-species">{photo.species}</span>}
+          {photo.description && <span className="featured-desc">{photo.description}</span>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function About() {
   const [ref, shown] = useReveal();
 
@@ -678,6 +732,8 @@ export default function Gallery() {
       <Hero onMenuOpen={() => setMenuOpen(true)}/>
       <StickyNav onMenuOpen={() => setMenuOpen(true)}/>
       <NavDrawer open={menuOpen} onClose={() => setMenuOpen(false)}/>
+
+      <Featured onOpen={openLightbox}/>
 
       <section id="galleria" className="section">
         <div className="section-header">
