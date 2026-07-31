@@ -20,7 +20,7 @@ function PolicyPage({title, updated, children}) {
 
 export function PrivacyPolicy() {
   return (
-    <PolicyPage title="Privacy Policy" updated="19 luglio 2026">
+    <PolicyPage title="Privacy Policy" updated="31 luglio 2026">
       <h2>Titolare del trattamento</h2>
       <p>
         Daniele Bartorilla — contatto:{" "}
@@ -57,15 +57,24 @@ export function PrivacyPolicy() {
       <h2>Statistiche di traffico</h2>
       <p>
         Il sito utilizza{" "}
-        <a href="https://www.goatcounter.com" target="_blank" rel="noreferrer">
-          GoatCounter
-        </a>
-        , uno strumento di statistiche rispettoso della privacy: non usa
-        cookie, non crea profili e non traccia i visitatori tra siti diversi.
-        Vengono raccolti in forma aggregata: pagina visitata, sito di
+        <a href="https://umami.is" target="_blank" rel="noreferrer">
+          Umami
+        </a>{" "}
+        (Umami Cloud), uno strumento di statistiche rispettoso della privacy:
+        non usa cookie, non crea profili e non traccia i visitatori tra siti
+        diversi. Vengono raccolti in forma aggregata: pagina visitata, sito di
         provenienza, tipo di browser e sistema operativo, dimensione dello
-        schermo e paese di provenienza. L&apos;indirizzo IP non viene
-        memorizzato.
+        schermo e paese di provenienza. L&apos;indirizzo IP viene usato solo
+        al momento della visita per ricavare il paese di provenienza e non
+        viene memorizzato. Maggiori informazioni nella{" "}
+        <a
+          href="https://umami.is/privacy"
+          target="_blank"
+          rel="noreferrer"
+        >
+          privacy policy di Umami
+        </a>
+        .
       </p>
 
       <h2>Contatti via email</h2>
@@ -101,7 +110,7 @@ export function PrivacyPolicy() {
 
 export function CookiePolicy() {
   return (
-    <PolicyPage title="Cookie Policy" updated="19 luglio 2026">
+    <PolicyPage title="Cookie Policy" updated="31 luglio 2026">
       <h2>Questo sito non usa cookie</h2>
       <p>
         Nessun cookie tecnico, di profilazione o di terze parti viene
@@ -113,8 +122,8 @@ export function CookiePolicy() {
       <h2>Statistiche senza cookie</h2>
       <p>
         Le statistiche di visita sono raccolte con{" "}
-        <a href="https://www.goatcounter.com" target="_blank" rel="noreferrer">
-          GoatCounter
+        <a href="https://umami.is" target="_blank" rel="noreferrer">
+          Umami
         </a>
         , che funziona senza cookie e senza identificatori persistenti: non
         è possibile risalire al singolo visitatore. Ulteriori dettagli nella{" "}
