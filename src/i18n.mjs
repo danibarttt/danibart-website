@@ -270,8 +270,9 @@ const EN = {
   navAbout: "About",
   navContact: "Contact",
 
-  themeToLight: "Switch to the light theme",
-  themeToDark: "Switch to the dark theme",
+  // English UI microcopy drops the article the Italian keeps ("Apri il menu")
+  themeToLight: "Switch to light theme",
+  themeToDark: "Switch to dark theme",
   themeLight: "Light theme",
   themeDark: "Dark theme",
   themeChange: "Change theme",
@@ -279,8 +280,8 @@ const EN = {
   langSwitchName: "Italiano",
   langCode: "IT",
 
-  menuOpen: "Open the menu",
-  menuClose: "Close the menu",
+  menuOpen: "Open menu",
+  menuClose: "Close menu",
   menuLabel: "Navigation menu",
 
   filterSpecies: "Filter by species",
@@ -289,7 +290,7 @@ const EN = {
   filterAnyYear: "Any year",
 
   heroTagline:
-    "Herons, cormorants and the other inhabitants of the wetlands, told through the lens.",
+    "Herons, cormorants and the other inhabitants of the wetlands, seen through the lens.",
 
   featuredOverline: "Shot of the week",
   featuredTitle: "Featured",
@@ -297,11 +298,13 @@ const EN = {
 
   galleryOverline: "Portfolio",
   galleryTitle: "Gallery",
-  galleryCountAll: n => `${n} shots among rice paddies, oxbows and heronries`,
+  galleryCountAll: n => `${n} shots among rice paddies, oxbow lakes and heronries`,
+  // "of grey heron" is agrammatical in English — a singular common name needs
+  // its determiner, where the Italian "di airone cenerino" takes none
   galleryCount: (n, species, year) =>
     [
       n === 1 ? "1 shot" : `${n} shots`,
-      species && `of ${species.toLowerCase()}`,
+      species && `of the ${species.toLowerCase()}`,
       year && `in ${year}`,
     ]
       .filter(Boolean)
@@ -321,14 +324,14 @@ const EN = {
   contactsOverline: "Contact",
   contactsTitle: "Drop me a line",
   contactsSub:
-    "A question, a proposal, or just fancy talking about birds? Here is my email:",
+    "A question, a proposal, or just fancy a chat about photography? Here is my email:",
 
   lightboxDetails: "Details",
   lightboxDetailsTitle: "Open the photo's own page",
   lightboxDetailsAria: "Open the photo's own page, in high resolution",
   lightboxShare: "Share",
   lightboxShareAria: "Share the photo",
-  lightboxLinkCopied: "Link copied to the clipboard",
+  lightboxLinkCopied: "Link copied to clipboard",
   lightboxCopyFailed: "Could not copy the link",
   lightboxPrevious: "Previous",
   lightboxNext: "Next",
@@ -350,24 +353,26 @@ const EN = {
   speciesAllLink: "All species",
   speciesPageTitle: (name, latin) => `${name} (${latin}) — photos by Daniele Bartorilla`,
   speciesPageDescription: (count, name, latin) =>
-    `${count} of ${name.toLowerCase()} (${latin}) in Daniele Bartorilla's wildlife photography gallery.`,
+    `${count} of the ${name.toLowerCase()} (${latin}) in Daniele Bartorilla's wildlife photography gallery.`,
 
   statsOverline: "Behind the scenes",
-  statsTitle: "Numbers",
+  // The nav keeps the terse "Numbers"; the page heading has room for the
+  // English idiom, which the bare noun does not carry on its own
+  statsTitle: "By the numbers",
   statsSub:
-    "What the shooting data behind the gallery says: when I go out, what I run into and with which settings.",
+    "What the shooting data behind the gallery says: when I go out, what I run into and what settings I use.",
   // Capitalised, unlike the Italian ones: English capitalises month names
   months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
   statPublished: "Published shots",
   statSpecies: "Species",
   statSpeciesSub: name => `the most frequent is the ${name}`,
   statFocal: "Favourite focal length",
-  statAperture: "Most used aperture",
+  statAperture: "Most-used aperture",
   statOfShots: (n, total) => `in ${n} shots out of ${total}`,
   chartMonths: busiest =>
-    `Shots per month${busiest ? ` — the busiest month is ${busiest.full}, with ${busiest.value}` : ""}`,
+    `Shots per month${busiest ? ` — the busiest is ${busiest.full}, with ${busiest.value}` : ""}`,
   chartSpecies: "Most photographed species — tap a bar to see the shots",
-  chartHours: "Time of day — the time recorded by the camera",
+  chartHours: "Time of day — as recorded by the camera",
   chartIso: "ISO sensitivity",
   hourLabel: hour => `${hour}:00`,
   isoLabel: iso => `ISO ${iso}`,
@@ -397,7 +402,7 @@ const EN = {
   exifLens: "Lens",
   exifFocal: "Focal length",
   exifAperture: "Aperture",
-  exifExposure: "Shutter",
+  exifExposure: "Shutter speed",
   exifIso: "ISO",
   placeLabel: "Taken in",
   placeCountry: "Italy",

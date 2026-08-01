@@ -219,7 +219,7 @@ export function CookiePolicy() {
 
           <h2>Your display preferences</h2>
           <p>
-            The only data stored on your device is what you choose in the two
+            The only data stored on your device is what you choose with the two
             buttons at the top of the page: light or dark theme, saved in the
             browser&apos;s localStorage under <code>theme</code>, and Italian or
             English, saved under <code>lang</code>. They exist purely to remember
