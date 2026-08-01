@@ -15,8 +15,10 @@ import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import "yet-another-react-lightbox/plugins/thumbnails.css";
 import Slideshow from "yet-another-react-lightbox/plugins/slideshow";
 import photos from "./photos";
+import {photoDescription, photoPath, photoTitle} from "./i18n.mjs";
+import {useLang} from "./lang";
 import {collectSpecies, commonName, speciesSlug, splitSpecies} from "./species.mjs";
-import {activeTheme, setTheme as applyThemeChoice, watchSystemTheme} from "./theme.mjs";
+import {LangToggle, ThemeToggle} from "./Toggles";
 import "./lightbox.css";
 
 // Drop a src/profile.jpg (or .jpeg/.png) in the repo and it shows up automatically
@@ -99,8 +101,12 @@ function useGalleryColumnCount() {
   return count;
 }
 
+// The set of species is language-independent; only the order the chips are
+// listed in is not, since it follows the common name. The slug map is built
+// from the Italian one either way — that is what ?specie= carries.
 const allSpecies = collectSpecies(photos);
 const speciesBySlug = new Map(allSpecies.map((s) => [speciesSlug(s), s]));
+const speciesOrder = {it: allSpecies, en: collectSpecies(photos, "en")};
 
 // EXIF DateTimeOriginal carries no timezone, so exif-reader hands back a Date
 // built as if it were UTC. Reading it back with the UTC accessors returns the
@@ -116,25 +122,27 @@ const allYears = Array.from(
   new Set(photos.map(photoYear).filter(Boolean)),
 ).sort((a, b) => b - a);
 
-// Chip row above the gallery grid to filter by species (Italian common name;
+// Chip row above the gallery grid to filter by species (shown by common name;
 // filtering itself still matches the Latin name stored in photos.json).
-// "Tutte" clears the filter.
+// The first chip clears the filter.
 function SpeciesFilter({active, onChange}) {
+  const {lang, t} = useLang();
+
   return (
-    <div className="species-filter" role="group" aria-label="Filtra per specie">
+    <div className="species-filter" role="group" aria-label={t.filterSpecies}>
       <button
         className={`species-chip${active === null ? " active" : ""}`}
         onClick={() => onChange(null)}
       >
-        Tutte
+        {t.filterAll}
       </button>
-      {allSpecies.map((species) => (
+      {speciesOrder[lang].map((species) => (
         <button
           key={species}
           className={`species-chip${active === species ? " active" : ""}`}
           onClick={() => onChange(active === species ? null : species)}
         >
-          {commonName(species)}
+          {commonName(species, lang)}
         </button>
       ))}
     </div>
@@ -145,19 +153,20 @@ function SpeciesFilter({active, onChange}) {
 // (both must match). Hidden when every photo was shot in the same year, where
 // the row would be a single chip that filters nothing.
 function YearFilter({active, onChange}) {
+  const {t} = useLang();
   if (allYears.length < 2) return null;
 
   return (
     <div
       className="species-filter year-filter"
       role="group"
-      aria-label="Filtra per anno"
+      aria-label={t.filterYear}
     >
       <button
         className={`species-chip${active === null ? " active" : ""}`}
         onClick={() => onChange(null)}
       >
-        Sempre
+        {t.filterAnyYear}
       </button>
       {allYears.map((year) => (
         <button
@@ -190,42 +199,6 @@ function distributeIntoColumns(items, columnCount) {
 
 const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
 
-// Sun/moon toggle. The icon shows the theme the click switches *to* — a sun
-// while the page is dark — and the label spells that out, since either reading
-// of the icon is defensible.
-function ThemeToggle({label = false}) {
-  const [theme, setTheme] = useState(activeTheme);
-
-  useEffect(() => watchSystemTheme(setTheme), []);
-
-  const next = theme === "dark" ? "light" : "dark";
-  const switchTheme = () => {
-    applyThemeChoice(next);
-    setTheme(next);
-  };
-
-  return (
-    <button
-      className={`theme-toggle${label ? " theme-toggle-labelled" : ""}`}
-      onClick={switchTheme}
-      title={next === "light" ? "Passa al tema chiaro" : "Passa al tema scuro"}
-      aria-label={next === "light" ? "Passa al tema chiaro" : "Passa al tema scuro"}
-    >
-      {next === "light" ? (
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
-          <circle cx="12" cy="12" r="4.2"/>
-          <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/>
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/>
-        </svg>
-      )}
-      {label && <span>{next === "light" ? "Tema chiaro" : "Tema scuro"}</span>}
-    </button>
-  );
-}
-
 // The nav mixes in-page sections (scrolled to) with routes (navigated to);
 // shared by the hero nav, the sticky nav and the mobile drawer so the three
 // never drift apart. onDone lets the drawer close itself first — the scroll
@@ -233,6 +206,7 @@ function ThemeToggle({label = false}) {
 // before scrollIntoView runs.
 function NavLinks({onDone}) {
   const navigate = useNavigate();
+  const {t} = useLang();
 
   const toSection = (id) => {
     onDone?.();
@@ -246,19 +220,21 @@ function NavLinks({onDone}) {
 
   return (
     <>
-      <button onClick={() => toSection("galleria")}>Galleria</button>
-      <button onClick={() => toRoute("/specie")}>Specie</button>
-      <button onClick={() => toRoute("/numeri")}>Numeri</button>
-      <button onClick={() => toSection("chi-sono")}>Chi sono</button>
-      <button onClick={() => toSection("contatti")}>Contatti</button>
+      <button onClick={() => toSection("galleria")}>{t.navGallery}</button>
+      <button onClick={() => toRoute("/specie")}>{t.navSpecies}</button>
+      <button onClick={() => toRoute("/numeri")}>{t.navNumbers}</button>
+      <button onClick={() => toSection("chi-sono")}>{t.navAbout}</button>
+      <button onClick={() => toSection("contatti")}>{t.navContact}</button>
     </>
   );
 }
 
 // On mobile the nav links collapse into this hamburger, which opens the NavDrawer
 function BurgerButton({onClick}) {
+  const {t} = useLang();
+
   return (
-    <button className="nav-burger" onClick={onClick} aria-label="Apri il menu">
+    <button className="nav-burger" onClick={onClick} aria-label={t.menuOpen}>
       <span/>
       <span/>
       <span/>
@@ -268,6 +244,8 @@ function BurgerButton({onClick}) {
 
 // Mobile-only side drawer with the nav actions, opened by either nav's hamburger
 function NavDrawer({open, onClose}) {
+  const {t} = useLang();
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
@@ -288,22 +266,23 @@ function NavDrawer({open, onClose}) {
         className="nav-drawer"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu di navigazione"
+        aria-label={t.menuLabel}
       >
         <button
           className="nav-drawer-close"
           onClick={onClose}
-          aria-label="Chiudi il menu"
+          aria-label={t.menuClose}
         >
           ×
         </button>
         <div className="nav-drawer-links">
           <NavLinks onDone={onClose}/>
         </div>
-        {/* Below 820px the nav links collapse into this drawer, and the theme
-            toggle comes with them — there is no room for it in the bar */}
+        {/* Below 820px the nav links collapse into this drawer, and the two
+            preference toggles come with them — there is no room in the bar */}
         <div className="nav-drawer-theme">
           <ThemeToggle label/>
+          <LangToggle label/>
         </div>
       </aside>
     </div>
@@ -331,6 +310,7 @@ function StickyNav({onMenuOpen}) {
           <NavLinks/>
         </div>
         <div className="nav-actions">
+          <LangToggle/>
           <ThemeToggle/>
           <BurgerButton onClick={onMenuOpen}/>
         </div>
@@ -340,6 +320,7 @@ function StickyNav({onMenuOpen}) {
 }
 
 function Hero({onMenuOpen}) {
+  const {t} = useLang();
   const heroPhoto = useHeroPhoto();
   const [visible, setVisible] = useState(false);
   // Tracks which photo has loaded, so crossing the breakpoint fades the
@@ -386,17 +367,15 @@ function Hero({onMenuOpen}) {
           <NavLinks/>
         </div>
         <div className="nav-actions">
+          <LangToggle/>
           <ThemeToggle/>
           <BurgerButton onClick={onMenuOpen}/>
         </div>
       </nav>
       <div className={`hero-content${visible ? " visible" : ""}`}>
         <h1>Daniele Bartorilla</h1>
-        <p className="overline">Fotografia naturalistica</p>
-        <p className="hero-tagline">
-          Aironi, cormorani e gli altri abitanti delle zone umide, raccontati
-          attraverso l'obiettivo.
-        </p>
+        <p className="overline">{t.tagline}</p>
+        <p className="hero-tagline">{t.heroTagline}</p>
       </div>
     </header>
   );
@@ -408,9 +387,11 @@ function Hero({onMenuOpen}) {
 const TWENTY_DAYS_MS = 20 * 24 * 60 * 60 * 1000;
 
 const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
+  const {lang, t} = useLang();
   const [loaded, setLoaded] = useState(false);
   const [ref, shown] = useReveal();
   const isNew = photo.dateTaken && Date.now() - new Date(photo.dateTaken).getTime() < TWENTY_DAYS_MS;
+  const title = photoTitle(photo, lang);
 
   // A real <a href> to the photo's static page rather than a click handler on
   // the figure: it is the only path from the home page to the /p/ pages a
@@ -439,7 +420,7 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
           <source srcSet={photo.thumbnailWebp} type="image/webp"/>
         )}
         <img
-          alt={photo.species ? `${photo.title} (${photo.species})` : photo.title}
+          alt={photo.species ? `${title} (${photo.species})` : title}
           src={photo.thumbnail}
           loading="lazy"
           decoding="async"
@@ -449,18 +430,18 @@ const GalleryItem = memo(function GalleryItem({photo, index, onOpen}) {
           onLoad={() => setLoaded(true)}
         />
       </picture>
-      {isNew && <span className="gallery-badge-new">Nuova</span>}
+      {isNew && <span className="gallery-badge-new">{t.galleryNew}</span>}
       <figcaption className="gallery-caption">
-        {photo.title}
+        {title}
         {photo.species && (
           <span className="gallery-caption-species">{photo.species}</span>
         )}
       </figcaption>
       <a
         className="gallery-link"
-        href={`/p/${photo.id}/`}
+        href={photoPath(photo.id, lang)}
         onClick={openHere}
-        aria-label={photo.title}
+        aria-label={title}
       />
     </figure>
   );
@@ -476,12 +457,15 @@ function getFeaturedPhoto() {
 }
 
 function Featured({onOpen}) {
+  const {lang, t} = useLang();
   const photo = useMemo(getFeaturedPhoto, []);
   const [ref, shown] = useReveal();
   const [loaded, setLoaded] = useState(false);
   // The 1280px lightbox rendition is plenty for a banner this size, and
   // already generated — no need for the multi-MB fullsize photo
   const bannerSrc = photo.srcSet[0]?.src ?? photo.src;
+  const title = photoTitle(photo, lang);
+  const description = photoDescription(photo, lang);
 
   return (
     <section
@@ -489,8 +473,8 @@ function Featured({onOpen}) {
       className={`section featured reveal${shown ? " shown" : ""}`}
     >
       <div className="section-header">
-        <p className="overline">Scatto della settimana</p>
-        <h2 className="section-title">In evidenza</h2>
+        <p className="overline">{t.featuredOverline}</p>
+        <h2 className="section-title">{t.featuredTitle}</h2>
       </div>
       <div
         className="featured-card"
@@ -498,22 +482,22 @@ function Featured({onOpen}) {
         onKeyDown={(e) => e.key === "Enter" && onOpen(photo.id)}
         tabIndex={0}
         role="button"
-        aria-label={`Apri ${photo.title} nella galleria`}
+        aria-label={t.featuredOpen(title)}
       >
         <img className="featured-placeholder" src={photo.blur} alt="" aria-hidden="true"/>
         <img
           className={`featured-img${loaded ? " loaded" : ""}`}
           src={bannerSrc}
-          alt={photo.species ? `${photo.title} (${photo.species})` : photo.title}
+          alt={photo.species ? `${title} (${photo.species})` : title}
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
         />
         <div className="featured-overlay"/>
         <div className="featured-text">
-          <span className="featured-title">{photo.title}</span>
+          <span className="featured-title">{title}</span>
           {photo.species && <span className="featured-species">{photo.species}</span>}
-          {photo.description && <span className="featured-desc">{photo.description}</span>}
+          {description && <span className="featured-desc">{description}</span>}
         </div>
       </div>
     </section>
@@ -521,6 +505,7 @@ function Featured({onOpen}) {
 }
 
 function About() {
+  const {t} = useLang();
   const [ref, shown] = useReveal();
 
   return (
@@ -531,31 +516,23 @@ function About() {
     >
       <div className="about-photo">
         {profileSrc ? (
-          <img src={profileSrc} alt="Ritratto di Daniele Bartorilla"/>
+          <img src={profileSrc} alt={t.aboutPortrait}/>
         ) : (
           <div className="about-placeholder">DB</div>
         )}
       </div>
       <div className="about-text">
-        <p className="overline">Chi sono</p>
-        <h2 className="section-title">Dietro l'obiettivo</h2>
-        <p>
-          Mi chiamo Daniele Bartorilla, informatico di professione e fotografo
-          naturalista per passione, con una predilezione per gli uccelli delle
-          zone umide: aironi, garzette, cormorani e i loro vicini di casa.
-        </p>
-        <p>
-          Scatto principalmente nel Pavese, tra risaie, lanche e garzaie. Mi
-          piace fotografare la natura nelle prime ore del mattino o al
-          tramonto, quando la luce è più morbida. In questo sito raccolgo le
-          foto a cui tengo di più, spero ti piacciano!
-        </p>
+        <p className="overline">{t.aboutOverline}</p>
+        <h2 className="section-title">{t.aboutTitle}</h2>
+        <p>{t.aboutP1}</p>
+        <p>{t.aboutP2}</p>
       </div>
     </section>
   );
 }
 
 function Contacts() {
+  const {t} = useLang();
   const [ref, shown] = useReveal();
 
   return (
@@ -565,11 +542,9 @@ function Contacts() {
       className={`section contacts reveal${shown ? " shown" : ""}`}
     >
       <div className="section-header">
-        <p className="overline">Contatti</p>
-        <h2 className="section-title">Restiamo in contatto</h2>
-        <p className="section-sub">
-          Vuoi metterti in contatto con me? Scrivimi al seguente indirizzo email:
-        </p>
+        <p className="overline">{t.contactsOverline}</p>
+        <h2 className="section-title">{t.contactsTitle}</h2>
+        <p className="section-sub">{t.contactsSub}</p>
       </div>
       <a
         className="contacts-email"
@@ -690,6 +665,7 @@ function BlurUpSlide({slide, offset, rect, onClick}) {
 }
 
 export default function Gallery() {
+  const {lang, t} = useLang();
   const navigate = useNavigate();
   const location = useLocation();
   const [currentPhotoId, setCurrentPhotoId] = useState(null);
@@ -724,18 +700,28 @@ export default function Gallery() {
     [galleryColumnCount, filteredPhotos],
   );
   const galleryCountLabel = useMemo(() => {
-    if (!activeSpecies && !activeYear) {
-      return `${photos.length} scatti tra risaie, lanche e garzaie`;
-    }
-    const count = filteredPhotos.length;
-    return [
-      count === 1 ? "1 scatto" : `${count} scatti`,
-      activeSpecies && `di ${commonName(activeSpecies)}`,
-      activeYear && `nel ${activeYear}`,
-    ]
-      .filter(Boolean)
-      .join(" ");
-  }, [activeSpecies, activeYear, filteredPhotos.length]);
+    if (!activeSpecies && !activeYear) return t.galleryCountAll(photos.length);
+    return t.galleryCount(
+      filteredPhotos.length,
+      activeSpecies && commonName(activeSpecies, lang),
+      activeYear,
+    );
+  }, [activeSpecies, activeYear, filteredPhotos.length, lang, t]);
+
+  // Landing on the gallery with a filter already applied means the visitor
+  // asked for a *filtered gallery* — from a card on /specie, from a bar on
+  // /numeri, or from a shared link — so the hero is not what they came to see.
+  // Read once, at mount: changing a filter with the chips re-renders but does
+  // not remount, so this can never yank the page while someone is reading it.
+  // A ?photo= link is excluded — there the lightbox is the subject, and the
+  // page behind it is not worth moving.
+  const enteredFiltered = useRef(
+    Boolean((activeSpecies || activeYear) && !params.get("photo")),
+  );
+
+  useEffect(() => {
+    if (enteredFiltered.current) scrollTo("galleria");
+  }, []);
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
 
@@ -764,10 +750,10 @@ export default function Gallery() {
     // shared link unfurls with the photo on WhatsApp & co. It is built by
     // generate-static-pages.mjs — in dev the static-pages-dev plugin serves
     // the same page off the dev server, so there is one URL everywhere.
-    const url = `${window.location.origin}/p/${photo.id}/`;
+    const url = `${window.location.origin}${photoPath(photo.id, lang)}`;
     if (navigator.share) {
       try {
-        await navigator.share({title: photo.title, url});
+        await navigator.share({title: photoTitle(photo, lang), url});
       } catch {
         // sharing canceled
       }
@@ -775,16 +761,16 @@ export default function Gallery() {
     }
     try {
       await navigator.clipboard.writeText(url);
-      showShareToast("Link copiato negli appunti");
+      showShareToast(t.lightboxLinkCopied);
     } catch {
-      showShareToast("Copia del link non riuscita");
+      showShareToast(t.lightboxCopyFailed);
     }
   };
 
   // The HQ button lands on the photo's own /p/ page, which shows the shot at
   // full resolution (in dev too — see the static-pages-dev plugin)
   const openHighDefinition = (photo) => {
-    window.location.href = `/p/${photo.id}/`;
+    window.location.href = photoPath(photo.id, lang);
   };
 
   // Stable identity so the memoized GalleryItems skip the per-swipe re-renders.
@@ -871,22 +857,22 @@ export default function Gallery() {
 
       <section id="galleria" className="section">
         <div className="section-header">
-          <p className="overline">Portfolio</p>
-          <h2 className="section-title">Galleria</h2>
+          <p className="overline">{t.galleryOverline}</p>
+          <h2 className="section-title">{t.galleryTitle}</h2>
           <p className="section-sub">{galleryCountLabel}</p>
         </div>
         <SpeciesFilter active={activeSpecies} onChange={setActiveSpecies}/>
         <YearFilter active={activeYear} onChange={setActiveYear}/>
         {filteredPhotos.length === 0 ? (
           <p className="gallery-empty">
-            Nessuno scatto con questi filtri.{" "}
+            {t.galleryEmpty}{" "}
             <button
               onClick={() => {
                 setActiveSpecies(null);
                 setActiveYear(null);
               }}
             >
-              Mostra tutti
+              {t.galleryShowAll}
             </button>
           </p>
         ) : (
@@ -956,11 +942,11 @@ export default function Gallery() {
                 key="hq"
                 type="button"
                 className="yarl__button lightbox-details"
-                title="Apri la scheda della foto"
-                aria-label="Apri la scheda della foto, in alta definizione"
+                title={t.lightboxDetailsTitle}
+                aria-label={t.lightboxDetailsAria}
                 onClick={() => openHighDefinition(lightboxPhotos[currentIndex])}
               >
-                <span>Dettagli</span>
+                <span>{t.lightboxDetails}</span>
                 <svg
                   viewBox="0 0 24 24"
                   width="16"
@@ -980,8 +966,8 @@ export default function Gallery() {
                 key="share"
                 type="button"
                 className="yarl__button"
-                title="Condividi"
-                aria-label="Condividi la foto"
+                title={t.lightboxShare}
+                aria-label={t.lightboxShareAria}
                 onClick={() => sharePhoto(lightboxPhotos[currentIndex])}
               >
                 <svg
@@ -1013,13 +999,14 @@ export default function Gallery() {
           // 5s per photo: long enough to actually look at one, short enough
           // that the whole catalog is not an evening's commitment
           slideshow={{autoplay: false, delay: 5000}}
-          // yarl ships English titles/ARIA labels; the rest of the site is Italian
+          // yarl ships its own English labels, which are neither the wording
+          // used here nor any use at all on the Italian site
           labels={{
-            Previous: "Precedente",
-            Next: "Successiva",
-            Close: "Chiudi",
-            Play: "Avvia la presentazione",
-            Pause: "Metti in pausa la presentazione",
+            Previous: t.lightboxPrevious,
+            Next: t.lightboxNext,
+            Close: t.lightboxClose,
+            Play: t.lightboxPlay,
+            Pause: t.lightboxPause,
           }}
           on={{
             view: ({index}) => {

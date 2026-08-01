@@ -1,7 +1,8 @@
 import {useMemo} from "react";
 import {Link} from "react-router";
 import photos from "./photos";
-import {findRegion, ITALY_PATH, MAP_VIEWBOX, REGION_PATHS} from "./regions.mjs";
+import {useLang} from "./lang";
+import {findRegion, ITALY_PATH, MAP_VIEWBOX, REGION_PATHS, regionName} from "./regions.mjs";
 import {collectSpecies, commonName, speciesSlug, splitSpecies} from "./species.mjs";
 import {SubPage} from "./SubPage";
 
@@ -14,18 +15,16 @@ const dated = photos.filter((photo) => photo.dateTaken).map((photo) => ({
   at: new Date(photo.dateTaken),
 }));
 
-const MONTHS_IT = [
-  "gen", "feb", "mar", "apr", "mag", "giu",
-  "lug", "ago", "set", "ott", "nov", "dic",
-];
-
-const monthLabel = (year, month) => `${MONTHS_IT[month]} ${year}`;
+// Month names are the one axis label that has to be translated; everything
+// else on these charts is a number. They come from the dictionary (t.months),
+// so every data function below takes the active language's strings.
+const monthLabel = (t, year, month) => `${t.months[month]} ${year}`;
 
 /* ---------- data ---------- */
 
 // One bucket per calendar month between the first and last shot, empty months
 // included: dropping them would compress the gaps and misstate the rhythm.
-function photosPerMonth() {
+function photosPerMonth(t) {
   if (dated.length === 0) return [];
   const times = dated.map((entry) => entry.at.getTime());
   const first = new Date(Math.min(...times));
@@ -47,8 +46,8 @@ function photosPerMonth() {
     const major = month === 0 || buckets.length === 0;
     buckets.push({
       key: `${year}-${month}`,
-      label: major ? `${MONTHS_IT[month]} ${String(year).slice(2)}` : MONTHS_IT[month],
-      full: monthLabel(year, month),
+      label: major ? `${t.months[month]} ${String(year).slice(2)}` : t.months[month],
+      full: monthLabel(t, year, month),
       major,
       value: counts.get(`${year}-${month}`) ?? 0,
     });
@@ -61,24 +60,28 @@ function photosPerMonth() {
   return buckets;
 }
 
-function photosPerSpecies() {
-  return collectSpecies(photos)
+function photosPerSpecies(lang) {
+  return collectSpecies(photos, lang)
     .map((latin) => ({
       key: latin,
-      label: commonName(latin),
+      label: commonName(latin, lang),
+      // Always the Italian slug: it is the gallery's ?specie= id, not a label
       slug: speciesSlug(latin),
       value: photos.filter(
         (photo) => photo.species && splitSpecies(photo.species).includes(latin),
       ).length,
     }))
-    .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "it"));
+    .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, lang));
 }
 
 // The manifest's "position" field, counted per Italian region so the map can
 // shade them. A position naming no region it knows (a foreign trip) is not
 // dropped: it is counted separately and listed under the map, which keeps the
-// totals honest.
-function photosPerRegion() {
+// totals honest. A region keeps its Italian name as identity — that is the key
+// REGION_PATHS is drawn from — and carries the translated one alongside as its
+// label; an unmatched place has only the string the manifest wrote, which is
+// its own label too.
+function photosPerRegion(lang) {
   const regions = new Map();
   const elsewhere = new Map();
   for (const photo of photos) {
@@ -89,17 +92,21 @@ function photosPerRegion() {
     const key = region ?? position;
     bucket.set(key, (bucket.get(key) ?? 0) + 1);
   }
-  const rank = (a, b) => b.value - a.value || a.name.localeCompare(b.name, "it");
+  const rank = (a, b) => b.value - a.value || a.label.localeCompare(b.label, lang);
+  const list = (map, translate) =>
+    [...map.entries()]
+      .map(([name, value]) => ({name, label: translate ? regionName(name, lang) : name, value}))
+      .sort(rank);
   return {
-    regions: [...regions.entries()].map(([name, value]) => ({name, value})).sort(rank),
-    elsewhere: [...elsewhere.entries()].map(([name, value]) => ({name, value})).sort(rank),
+    regions: list(regions, true),
+    elsewhere: list(elsewhere, false),
     total: [...regions.values(), ...elsewhere.values()].reduce((sum, n) => sum + n, 0),
   };
 }
 
 // Continuous span from the earliest to the latest hour of the day with a shot,
 // so the empty hours in between stay visible as gaps
-function photosPerHour() {
+function photosPerHour(t) {
   if (dated.length === 0) return [];
   const hours = dated.map(({at}) => at.getUTCHours());
   const counts = new Map();
@@ -112,7 +119,7 @@ function photosPerHour() {
     return {
       key: hour,
       label: `${hour}`,
-      full: `ore ${hour}:00`,
+      full: t.hourLabel(hour),
       major: hour % 3 === 0 || index === 0,
       value: counts.get(hour) ?? 0,
     };
@@ -120,7 +127,7 @@ function photosPerHour() {
 }
 
 // ISO is ordinal, so the buckets stay in numeric order rather than by count
-function photosPerIso() {
+function photosPerIso(t) {
   const counts = new Map();
   for (const photo of photos) {
     const iso = photo.exif?.iso;
@@ -128,7 +135,7 @@ function photosPerIso() {
   }
   return [...counts.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([iso, value]) => ({key: iso, label: `${iso}`, full: `ISO ${iso}`, major: true, value}));
+    .map(([iso, value]) => ({key: iso, label: `${iso}`, full: t.isoLabel(iso), major: true, value}));
 }
 
 // The two bodies write the same lens under different names ("EF400mm f/5.6L
@@ -194,7 +201,7 @@ function dominant(pick) {
 // handed over as a --fill custom property so the same value can drive its
 // height in one layout and its width in the other, and each bucket carries
 // both of its labels, the short one for the axis and the full one for the row.
-function Columns({data, caption, unit = "scatti"}) {
+function Columns({data, caption, unit}) {
   const max = Math.max(...data.map((d) => d.value), 1);
 
   return (
@@ -259,6 +266,7 @@ function Bars({data, caption}) {
 // national projection (src/regions.mjs), so a region sits exactly on top of
 // its own outline in the backdrop.
 function RegionMap({regions, elsewhere, total, caption}) {
+  const {t} = useLang();
   const max = Math.max(...regions.map((region) => region.value), 1);
   const places = [...regions, ...elsewhere];
   const single = places.length === 1 ? places[0] : undefined;
@@ -271,9 +279,9 @@ function RegionMap({regions, elsewhere, total, caption}) {
           className="region-map"
           viewBox={MAP_VIEWBOX}
           role="img"
-          aria-label={`Mappa d'Italia con evidenziate le regioni degli scatti: ${regions
-            .map((region) => `${region.name}, ${region.value}`)
-            .join("; ")}`}
+          aria-label={t.regionMapAria(
+            regions.map((region) => `${region.label}, ${region.value}`).join("; "),
+          )}
         >
           <path className="region-map-country" d={ITALY_PATH}/>
           {regions.map((region) => (
@@ -291,18 +299,18 @@ function RegionMap({regions, elsewhere, total, caption}) {
             nothing the number does not, so the map gets a caption instead */}
         {single ? (
           <p className="region-single">
-            <b>{single.name}</b>
+            <b>{single.label}</b>
             <span>
               {single.value === photos.length
-                ? `tutti i ${photos.length} scatti in galleria`
-                : `${single.value} scatti su ${photos.length}`}
+                ? t.regionAllShots(photos.length)
+                : t.regionSomeShots(single.value, photos.length)}
             </span>
           </p>
         ) : (
           <ul className="region-list">
             {regions.map((region) => (
               <li key={region.name}>
-                <span className="region-list-name">{region.name}</span>
+                <span className="region-list-name">{region.label}</span>
                 <span className="chart-bar-track">
                   <span
                     className="chart-bar-fill"
@@ -323,9 +331,7 @@ function RegionMap({regions, elsewhere, total, caption}) {
         )}
       </div>
       {total < photos.length && (
-        <p className="region-note">
-          {`Zona indicata su ${total} scatti su ${photos.length}.`}
-        </p>
+        <p className="region-note">{t.regionNote(total, photos.length)}</p>
       )}
     </figure>
   );
@@ -344,11 +350,12 @@ function Tile({label, value, sub}) {
 /* ---------- page ---------- */
 
 export default function Stats() {
-  const months = useMemo(photosPerMonth, []);
-  const species = useMemo(photosPerSpecies, []);
-  const hours = useMemo(photosPerHour, []);
-  const isos = useMemo(photosPerIso, []);
-  const places = useMemo(photosPerRegion, []);
+  const {lang, t} = useLang();
+  const months = useMemo(() => photosPerMonth(t), [t]);
+  const species = useMemo(() => photosPerSpecies(lang), [lang]);
+  const hours = useMemo(() => photosPerHour(t), [t]);
+  const isos = useMemo(() => photosPerIso(t), [t]);
+  const places = useMemo(() => photosPerRegion(lang), [lang]);
   const {cameras, lenses} = useMemo(gear, []);
   const focal = useMemo(() => dominant((exif) => exif.focalLength), []);
   const aperture = useMemo(() => dominant((exif) => exif.fNumber), []);
@@ -363,74 +370,63 @@ export default function Stats() {
   );
 
   return (
-    <SubPage
-      overline="Dietro le quinte"
-      title="Numeri"
-      sub="Cosa raccontano i dati di scatto delle foto in galleria: quando esco, cosa incontro e con che impostazioni."
-      wide
-    >
+    <SubPage overline={t.statsOverline} title={t.statsTitle} sub={t.statsSub} wide>
       <div className="stat-tiles">
-        <Tile label="Scatti pubblicati" value={photos.length} sub={span}/>
+        <Tile label={t.statPublished} value={photos.length} sub={span}/>
         <Tile
-          label="Specie"
+          label={t.statSpecies}
           value={species.length}
-          sub={`la più frequente è ${species[0]?.label.toLowerCase()}`}
+          sub={t.statSpeciesSub(species[0]?.label.toLowerCase())}
         />
         {focal && (
           <Tile
-            label="Focale preferita"
+            label={t.statFocal}
             value={`${focal.value} mm`}
-            sub={`in ${focal.count} scatti su ${focal.total}`}
+            sub={t.statOfShots(focal.count, focal.total)}
           />
         )}
         {aperture && (
           <Tile
-            label="Diaframma più usato"
+            label={t.statAperture}
             value={`ƒ/${aperture.value}`}
-            sub={`in ${aperture.count} scatti su ${aperture.total}`}
+            sub={t.statOfShots(aperture.count, aperture.total)}
           />
         )}
       </div>
 
-      <Columns
-        data={months}
-        caption={`Scatti per mese${busiest ? ` — il mese più prolifico è ${busiest.full}, con ${busiest.value}` : ""}`}
-      />
+      <Columns data={months} caption={t.chartMonths(busiest)} unit={t.unitShots}/>
 
-      <Bars data={species} caption="Specie più fotografate — tocca una barra per vedere gli scatti"/>
+      <Bars data={species} caption={t.chartSpecies}/>
 
       {places.total > 0 && (
         <RegionMap
           {...places}
           caption={
             places.regions.length === 1 && places.elsewhere.length === 0
-              ? `Dove scatto — tutto in ${places.regions[0].name}`
-              : `Dove scatto — ${places.regions.length + places.elsewhere.length} zone`
+              ? t.chartRegionsOne(places.regions[0].label)
+              : t.chartRegionsMany(places.regions.length + places.elsewhere.length)
           }
         />
       )}
 
-      <Columns
-        data={hours}
-        caption="Ora del giorno — l'orario registrato dalla fotocamera"
-      />
+      <Columns data={hours} caption={t.chartHours} unit={t.unitShots}/>
 
-      <Columns data={isos} caption="Sensibilità ISO" unit="scatti"/>
+      <Columns data={isos} caption={t.chartIso} unit={t.unitShots}/>
 
-      <h2 className="stats-heading">Attrezzatura</h2>
+      <h2 className="stats-heading">{t.gearHeading}</h2>
       <table className="gear-table">
         <tbody>
           {cameras.map(({name, count}) => (
             <tr key={name}>
               <th scope="row">{name}</th>
-              <td>Corpo macchina</td>
+              <td>{t.gearBody}</td>
               <td>{count}</td>
             </tr>
           ))}
           {lenses.map(({name, count}) => (
             <tr key={name}>
               <th scope="row">{name}</th>
-              <td>Obiettivo</td>
+              <td>{t.gearLens}</td>
               <td>{count}</td>
             </tr>
           ))}

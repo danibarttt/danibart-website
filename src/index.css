@@ -496,7 +496,43 @@ button:focus-visible {
   opacity: 1;
 }
 
+/* ---------- Language toggle ---------- */
+
+/* It wears .theme-toggle too, so the circle, the border, the hover and the
+   collapse into the drawer all come from the rules above; only its content
+   differs — a two-letter code where the theme toggle draws a glyph. The fixed
+   width is what makes the two labelled pills line their text up. */
+/* Weight 500 and the nav's own letter-spacing rather than a bold, tight pair
+   of letters: at 12px inside a hairline circle, next to a 1.7px-stroke glyph,
+   anything heavier reads as a badge shouting at the icon beside it */
+.lang-toggle-code {
+  width: 20px;
+  flex: none;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-indent: 0.08em; /* offsets the trailing letter-space, re-centring "EN" */
+}
+
+/* In both navs it needs a shadow — but not the nav links' one, which it would
+   otherwise inherit through .nav .theme-toggle: that is two stacked shadows
+   sized for 15px letter-spaced text, and on a 12px "EN" it reads as a smudge.
+   This is the drop-shadow the sun/moon glyph beside it already wears, so the
+   two lift off the background by the same amount. */
+.nav .lang-toggle,
+.sticky-nav .lang-toggle {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
+}
+
+/* The drawer stacks the two pills; without this they would sit side by side
+   and the second would be cut off on a narrow phone */
 .nav-drawer-theme {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   margin-top: 34px;
   padding-top: 22px;
   border-top: 1px solid rgb(var(--text-rgb) / 0.12);
@@ -1188,6 +1224,16 @@ button:focus-visible {
   padding: clamp(90px, 12vw, 140px) 24px 40px;
 }
 
+/* These pages carry no nav bar, so the language toggle rides along with the
+   back link — otherwise there is no way to switch language from /numeri */
+.subpage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
 .policy-back {
   display: inline-block;
   font-family: var(--sans);
@@ -1195,7 +1241,6 @@ button:focus-visible {
   letter-spacing: 0.06em;
   color: var(--muted);
   text-decoration: none;
-  margin-bottom: 34px;
   transition: color 0.2s ease;
 }
 

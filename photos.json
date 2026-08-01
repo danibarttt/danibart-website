@@ -2,227 +2,291 @@
   {
     "filename": "IMG_0802",
     "title": "Garzetta e Ibis Sacro",
+    "titleEn": "Little Egret and Sacred Ibis",
     "species": "Egretta garzetta · Threskiornis aethiopicus",
     "description": "Quattro sagome tra le spighe di riso: gli ibis col becco giù a rovistare, la garzetta impettita a fare da sentinella. Mi ha ricordato la foto dei Beatles ad Abbey Road.",
+    "descriptionEn": "Four silhouettes among the rice ears: the ibises with their bills down, rummaging, the little egret standing stiffly on sentry duty. It reminded me of the Beatles' Abbey Road cover.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_0189",
     "title": "Cormorano",
+    "titleEn": "Cormorant",
     "species": "Phalacrocorax carbo",
     "description": "Il cormorano si asciuga le ali al sole come se avesse tutto il tempo del mondo, mentre due guardabuoi sfrecciano sullo sfondo.",
+    "descriptionEn": "The cormorant dries its wings in the sun as if it had all the time in the world, while two cattle egrets streak past in the background.",
     "position": "Lombardia",
     "heroLarge": true
   },
   {
     "filename": "IMG_7872",
     "title": "Gruccione",
+    "titleEn": "Bee-eater",
     "species": "Merops apiaster",
     "description": "Un gruccione che sfreccia nel cielo rosa del tramonto, acceso come una brace volante. Un attimo dopo era già sparito tra i rami.",
+    "descriptionEn": "A bee-eater darting across the pink sunset sky, glowing like a flying ember. A moment later it had already vanished among the branches.",
     "position": "Toscana"
   },
   {
     "filename": "IMG_7817",
     "title": "Piro Piro Piccolo",
+    "titleEn": "Common Sandpiper",
     "species": "Actitis hypoleucos",
     "description": "Piccolo, discreto, con lo sguardo fisso sull'acqua color rame: il piro piro piccolo si ferma su un tronco pieno di cirripedi.",
+    "descriptionEn": "Small, unassuming, eyes fixed on the copper-coloured water: the common sandpiper pauses on a barnacle-covered log.",
     "position": "Toscana"
   },
   {
     "filename": "IMG_7734",
     "title": "Garzette",
+    "titleEn": "Little Egrets",
     "species": "Egretta garzetta",
     "description": "Quattro garzette in fila indiana, ali illuminate dal controluce come se stessero sfilando in passerella sopra gli alberi.",
+    "descriptionEn": "Four little egrets in single file, wings lit from behind as if they were walking a runway above the trees.",
     "position": "Toscana"
   },
   {
     "filename": "IMG_7662",
     "title": "Tortore Selvatiche",
+    "titleEn": "Turtle Doves",
     "species": "Streptopelia turtur",
     "description": "Due tortore appollaiate sulla stessa punta di ramo secco, strette strette nella luce dorata della sera.",
+    "descriptionEn": "Two turtle doves perched on the same tip of a dry branch, pressed close together in the golden evening light.",
     "position": "Toscana"
   },
   {
     "filename": "IMG_6854",
     "title": "Cicogna",
+    "titleEn": "White Stork",
     "species": "Ciconia ciconia",
     "description": "La cicogna sistema il nido con la cura di chi ha appena traslocato e vuole tutto al posto giusto, mentre il cielo grigio fa da sfondo un po' cupo.",
+    "descriptionEn": "The stork tidies its nest with the care of someone who has just moved house and wants everything in its place, against a rather gloomy grey sky.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_6501",
     "title": "Garzetta",
+    "titleEn": "Little Egret",
     "species": "Egretta garzetta",
     "description": "La garzetta illuminata nel buio dello stagno, sospesa tra il suo riflesso e il silenzio della risaia.",
+    "descriptionEn": "The little egret lit up in the darkness of the pond, suspended between its own reflection and the silence of the rice field.",
     "position": "Lombardia",
     "hero": true
   },
   {
     "filename": "IMG_6354",
     "title": "Airone Cenerino",
+    "titleEn": "Grey Heron",
     "species": "Ardea cinerea",
     "description": "Airone cenerino in perfetta planata radente sull'acqua, con quel muro scrostato alle spalle che gli dà un'aria vagamente urbana.",
+    "descriptionEn": "A grey heron in a perfect glide, skimming the water, with that peeling wall behind it giving the scene a vaguely urban air.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_6229",
     "title": "Airone Bianco Maggiore",
+    "titleEn": "Great Egret",
     "species": "Ardea alba",
     "description": "Un airone bianco maggiore vola basso nella foschia della sera, becco aperto come se stesse commentando qualcosa col vicino di volo.",
+    "descriptionEn": "A great egret flies low through the evening haze, bill open as if commenting on something to the bird flying next to it.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_6197",
     "title": "Oca Selvatica",
+    "titleEn": "Greylag Goose",
     "species": "Anser anser",
     "description": "L'oca selvatica sfreccia bassa su un campo di stoppie, becco arancione acceso come un semaforo in mezzo a tutto quel marrone.",
+    "descriptionEn": "The greylag goose races low over a field of stubble, its orange bill as bright as a traffic light in the middle of all that brown.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5893",
     "title": "Airone Cenerino",
+    "titleEn": "Grey Heron",
     "species": "Ardea cinerea",
     "description": "Solo una sagoma nera contro un cielo che vira dall'oro al viola.",
+    "descriptionEn": "Just a black silhouette against a sky turning from gold to violet.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5849",
     "title": "Parrocchetti",
+    "titleEn": "Parakeets",
     "species": "Psittacula krameri",
     "description": "Due parrocchetti dai colori improbabili, uno giallo canarino e uno più discreto, intenti a spulciare le foglie secche come fosse un buffet.",
+    "descriptionEn": "Two parakeets in improbable colours, one canary yellow and one rather more discreet, picking through the dry leaves as if at a buffet.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5778",
     "title": "Airone Cenerino",
+    "titleEn": "Grey Heron",
     "species": "Ardea cinerea",
     "description": "L'airone cenerino rade il campo mietuto a bassa quota, con un collega distante sullo sfondo che osserva la scena senza intromettersi.",
+    "descriptionEn": "The grey heron skims the harvested field at low altitude, while a distant colleague watches the scene from the background without getting involved.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5776",
     "title": "Airone Bianco Maggiore",
+    "titleEn": "Great Egret",
     "species": "Ardea alba",
     "description": "Airone bianco maggiore in volo tra i rami spogli, becco spalancato: sembra stia urlando alla giornata di svegliarsi.",
+    "descriptionEn": "A great egret flying through the bare branches, bill wide open: it looks like it is yelling at the day to wake up.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5703",
     "title": "Cormorano",
+    "titleEn": "Cormorant",
     "species": "Phalacrocorax carbo",
     "description": "atterraggio maldestro del cormorano, spruzzi ovunque, mentre sullo sfondo un airone bianco osserva impassibile la scena come se fosse tutto normale.",
+    "descriptionEn": "a clumsy landing by the cormorant, spray everywhere, while in the background a great egret watches impassively, as if this were all perfectly normal.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5754",
     "title": "Airone Bianco Maggiore",
+    "titleEn": "Great Egret",
     "species": "Ardea alba",
     "description": "Un airone bianco maggiore sbuca tra i rami scuri, la nebbia padana rende questa foto quasi simile ad un quadro ad olio",
+    "descriptionEn": "A great egret emerges among the dark branches; the fog of the Po valley makes this photo look almost like an oil painting",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5470",
     "title": "Cicogne",
+    "titleEn": "White Storks",
     "species": "Ciconia ciconia",
     "description": "Un gruppo di cicogne riunite sul greto del fiume, tra tronchi portati dalla corrente. Sono rimasto a osservarle a lungo: ognuna sul suo posatoio, immobili nella luce del mattino.",
+    "descriptionEn": "A group of storks gathered on the riverbed, among logs carried down by the current. I stayed and watched them for a long time: each on its own perch, motionless in the morning light.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5321",
     "title": "Aironi Bianchi Maggiori",
+    "titleEn": "Great Egrets",
     "species": "Ardea alba",
     "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali.",
+    "descriptionEn": "Two great egrets take off from a freshly harvested rice field on a hazy morning. Their open wings almost overlap: they look like a single four-winged bird.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5319",
     "title": "Cenerino e Ibis Sacro",
+    "titleEn": "Grey Heron and Sacred Ibis",
     "species": "Ardea cinerea · Threskiornis aethiopicus",
     "description": "Un piccolo raduno informale su un dosso della risaia: l'airone cenerino fa da capofila e un gruppetto di ibis sacri lo segue in fila sparsa, tra nebbiolina e controluce.",
+    "descriptionEn": "A small informal gathering on a ridge in the rice field: the grey heron leads the way and a handful of sacred ibises follow in a loose line, through mist and backlight.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_5284",
     "title": "Airone Bianco Maggiore",
+    "titleEn": "Great Egret",
     "species": "Ardea alba",
     "description": "L'airone bianco maggiore in posa da soprammobile su un argine erboso, immobile e fiero come se sapesse di essere fotogenico.",
+    "descriptionEn": "The great egret posing like an ornament on a grassy bank, still and proud as if it knew it was photogenic.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_4966",
     "title": "Aironi Guardabuoi",
+    "titleEn": "Cattle Egrets",
     "species": "Bubulcus ibis",
     "description": "Un albero intero requisito dagli aironi guardabuoi per la notte, decine di puntini bianchi appollaiati ovunque: il condominio più affollato della zona.",
+    "descriptionEn": "A whole tree commandeered by cattle egrets for the night, dozens of little white dots perched everywhere: the most crowded apartment block in the area.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_4344",
     "title": "Airone Cenerino",
+    "titleEn": "Grey Heron",
     "species": "Ardea cinerea",
     "description": "Atterraggio dell'airone cenerino, zampe a penzoloni e ali spalancate contro un cielo azzurro senza una nuvola.",
+    "descriptionEn": "The grey heron coming in to land, legs dangling and wings spread wide against a cloudless blue sky.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_4480",
     "title": "Gallinella d'acqua",
+    "titleEn": "Moorhen",
     "species": "Gallinula chloropus",
     "description": "La gallinella d'acqua cammina in equilibrio su un tronco sommerso dalle lenticchie d'acqua, con quel piede sollevato a mezz'aria che sembra un passo di danza.",
+    "descriptionEn": "The moorhen balances along a log submerged in duckweed, one foot held up in mid-air like a dance step.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_4188",
     "title": "Airone Cenerino",
+    "titleEn": "Grey Heron",
     "species": "Ardea cinerea",
     "description": "Airone cenerino diritto come un fuso su un ammasso di rami, sguardo fisso e posa da guardiano del canale.",
+    "descriptionEn": "A grey heron standing bolt upright on a tangle of branches, staring ahead in the pose of a canal watchman.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_4100",
     "title": "Giovane Airone Rosso",
+    "titleEn": "Young Purple Heron",
     "species": "Ardea purpurea",
     "description": "Un giovane airone rosso in equilibrio precario sulla cima di un cespuglio, come se avesse scelto apposta il posto più scomodo per farsi notare.",
+    "descriptionEn": "A young purple heron balancing precariously on top of a bush, as if it had deliberately picked the most awkward spot it could find in order to be noticed.",
     "position": "Veneto"
   },
   {
     "filename": "IMG_4044",
     "title": "Gruccione",
+    "titleEn": "Bee-eater",
     "species": "Merops apiaster",
     "description": "Il gruccione ha appena agguantato la colazione al volo, letteralmente: una vespa stretto nel becco e l'aria soddisfatta di chi ce l'ha fatta.",
+    "descriptionEn": "The bee-eater has just caught breakfast on the wing, quite literally: a wasp clamped in its bill and the satisfied look of someone who pulled it off.",
     "position": "Veneto"
   },
   {
     "filename": "IMG_3943",
     "title": "Nitticora",
+    "titleEn": "Night Heron",
     "species": "Nycticorax nycticorax",
     "description": "La nitticora se ne sta appollaiata tra i rami in pieno giorno, da notare l'occhio rossissimo.",
+    "descriptionEn": "The night heron sits perched among the branches in broad daylight — note that intensely red eye.",
     "position": "Veneto"
   },
   {
     "filename": "IMG_3817",
     "title": "Airone Rosso",
+    "titleEn": "Purple Heron",
     "species": "Ardea purpurea",
     "description": "Airone rosso in volo con le ali aperte contro un cielo azzurro striato di rosa, elegante e colorato.",
+    "descriptionEn": "A purple heron in flight, wings open against a blue sky streaked with pink, elegant and full of colour.",
     "position": "Veneto"
   },
   {
     "filename": "IMG_3807",
     "title": "Airone Rosso",
+    "titleEn": "Purple Heron",
     "species": "Ardea purpurea",
     "description": "Mimetizzato tra i rami e il verde della sponda, l'airone rosso spunta col collo teso: se non guardavo bene, non lo beccavo nemmeno.",
+    "descriptionEn": "Camouflaged among the branches and the green of the bank, the purple heron sticks its neck out: if I had not looked carefully, I would have missed it altogether.",
     "position": "Veneto"
   },
   {
     "filename": "IMG_3292",
     "title": "Guardabuoi e Garzetta",
+    "titleEn": "Cattle Egret and Little Egret",
     "species": "Bubulcus ibis · Egretta garzetta",
     "description": "Un guardabuoi e una garzetta che sembrano non rivolgersi nemmeno lo sguardo.",
+    "descriptionEn": "A cattle egret and a little egret who look like they are not even acknowledging each other.",
     "position": "Lombardia"
   },
   {
     "filename": "IMG_2990",
     "title": "Aironi Cenerini",
+    "titleEn": "Grey Herons",
     "species": "Ardea cinerea",
     "description": "Due aironi cenerini si contendono lo stesso angolo di stagno verde, ali spalancate come in una discussione condominiale mai troppo seria.",
+    "descriptionEn": "Two grey herons squabbling over the same corner of a green pond, wings flung wide like neighbours in a never-too-serious argument.",
     "position": "Lombardia"
   }
 ]

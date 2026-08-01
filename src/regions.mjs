@@ -60,6 +60,24 @@ export const REGION_PATHS = {
 // The backdrop: all 20 outlines, drawn as one path
 export const ITALY_PATH = Object.values(REGION_PATHS).join("");
 
+// The keys of REGION_PATHS are the Italian names — they are the identity of a
+// region everywhere in the code (the manifest's "position", the map lookup,
+// the per-region counts on /numeri). Only the label shown to a reader changes,
+// and only for the handful of regions English actually renames.
+const REGIONS_EN = {
+  "Lombardia": "Lombardy",
+  "Piemonte": "Piedmont",
+  "Puglia": "Apulia",
+  "Sardegna": "Sardinia",
+  "Sicilia": "Sicily",
+  "Toscana": "Tuscany",
+  "Trentino-Alto Adige": "Trentino-South Tyrol",
+  "Valle d'Aosta": "Aosta Valley",
+};
+
+export const regionName = (region, lang = "it") =>
+  (lang === "en" && REGIONS_EN[region]) || region;
+
 // Comparison key: accents, case, apostrophes and hyphens all vary in how
 // people write these names ("Valle d'Aosta", "Valle d Aosta", "SUDTIROL")
 const key = name =>
@@ -101,4 +119,17 @@ export const findRegion = position => {
       .map(part => lookup(part))
       .find(Boolean)
   );
+};
+
+// What the English pages print in place of the manifest's Italian "position".
+// A value that is nothing but a region name ("Lombardia") is translated
+// outright; anything more specific ("Parco del Ticino, Lombardia") is a proper
+// name this cannot translate on its own, so it comes from an optional
+// positionEn in photos.json, or is printed as written.
+export const positionLabel = (photo, lang) => {
+  const position = photo.position?.trim();
+  if (!position || lang !== "en") return position;
+  if (photo.positionEn) return photo.positionEn;
+  const region = findRegion(position);
+  return region && key(region) === key(position) ? regionName(region, "en") : position;
 };

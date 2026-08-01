@@ -1,21 +1,24 @@
 import {useMemo} from "react";
 import {Link} from "react-router";
 import photos from "./photos";
+import {photoTitle} from "./i18n.mjs";
+import {useLang} from "./lang";
 import {collectSpecies, commonName, speciesSlug, splitSpecies} from "./species.mjs";
 import {SubPage} from "./SubPage";
 
-// One card per species: the most recent photo of it as cover, the Italian and
+// One card per species: the most recent photo of it as cover, the common and
 // Latin names, and how many shots there are. Each card links into the gallery
 // with that species preselected (?specie=), which is why the gallery keeps its
-// filters in the query string.
-function buildSpecies() {
-  return collectSpecies(photos).map((latin) => {
+// filters in the query string. The slug in that parameter stays the Italian
+// one in both languages — it is an id, not a word anyone reads.
+function buildSpecies(lang) {
+  return collectSpecies(photos, lang).map((latin) => {
     const taken = photos.filter(
       (photo) => photo.species && splitSpecies(photo.species).includes(latin),
     );
     return {
       latin,
-      name: commonName(latin),
+      name: commonName(latin, lang),
       slug: speciesSlug(latin),
       // photos is already ordered by shooting date, most recent first
       cover: taken[0],
@@ -25,13 +28,14 @@ function buildSpecies() {
 }
 
 export default function SpeciesIndex() {
-  const species = useMemo(buildSpecies, []);
+  const {lang, t} = useLang();
+  const species = useMemo(() => buildSpecies(lang), [lang]);
 
   return (
     <SubPage
-      overline="Indice"
-      title="Specie fotografate"
-      sub={`${species.length} specie in ${photos.length} scatti. Tocca una specie per vederne tutte le foto.`}
+      overline={t.speciesIndexOverline}
+      title={t.speciesIndexTitle}
+      sub={t.speciesIndexSub(species.length, photos.length)}
       wide
     >
       <ul className="species-index">
@@ -47,7 +51,7 @@ export default function SpeciesIndex() {
                 )}
                 <img
                   src={cover.thumbnail}
-                  alt={`${name} — ${cover.title}`}
+                  alt={`${name} — ${photoTitle(cover, lang)}`}
                   loading="lazy"
                   decoding="async"
                 />
@@ -56,9 +60,7 @@ export default function SpeciesIndex() {
                 <span className="species-index-name">{name}</span>
                 <span className="species-index-latin">{latin}</span>
               </span>
-              <span className="species-index-count">
-                {count} {count === 1 ? "scatto" : "scatti"}
-              </span>
+              <span className="species-index-count">{t.shots(count)}</span>
             </Link>
           </li>
         ))}

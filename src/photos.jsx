@@ -46,10 +46,16 @@ export default photos.map(photo => {
     heroSrc,
     heroWebp,
     heroAvif,
+    // The Italian text is the original; the En fields are optional and fall
+    // back to it (see photoTitle/photoDescription in i18n.mjs), so a photo
+    // added without a translation still shows something
     title: photo.title,
+    titleEn: photo.titleEn,
     species: photo.species,
     description: photo.description,
+    descriptionEn: photo.descriptionEn,
     position: photo.position,
+    positionEn: photo.positionEn,
     hero: photo.hero,
     heroSmall: photo.heroSmall,
     heroLarge: photo.heroLarge,

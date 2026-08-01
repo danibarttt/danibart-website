@@ -29,14 +29,15 @@ const INPUTS = [
   "photos.json",
   "generated_photos/metadata.json",
   GENERATOR,
+  "src/i18n.mjs",
   "src/photo-id.mjs",
   "src/regions.mjs",
   "src/species.mjs",
 ];
 
-// Only the static surface. Everything else — the SPA, its assets,
-// generated_photos/ — stays with vite's own middlewares.
-const STATIC_PATH = /^\/(p|s)\//;
+// Only the static surface, in either language. Everything else — the SPA, its
+// assets, generated_photos/ — stays with vite's own middlewares.
+const STATIC_PATH = /^\/(en\/)?(p|s)\//;
 
 export default function staticPagesDev() {
   let root = process.cwd();
