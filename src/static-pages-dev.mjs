@@ -15,6 +15,8 @@ import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 
+import { LANGS, licensePath } from "./i18n.mjs";
+
 const run = promisify(execFile);
 
 const OUT_DIR = ".dev-static";
@@ -29,6 +31,7 @@ const INPUTS = [
   "photos.json",
   "generated_photos/metadata.json",
   GENERATOR,
+  "src/hero.mjs",
   "src/i18n.mjs",
   "src/photo-id.mjs",
   "src/regions.mjs",
@@ -37,7 +40,16 @@ const INPUTS = [
 
 // Only the static surface, in either language. Everything else — the SPA, its
 // assets, generated_photos/ — stays with vite's own middlewares.
+//
+// /p/ and /s/ keep their segment in both languages, so one pattern covers
+// them. The license page is the one whose path is itself translated, so it is
+// matched by name instead — with and without the trailing slash, since either
+// spelling should reach it.
 const STATIC_PATH = /^\/(en\/)?(p|s)\//;
+const LICENSE_PATHS = new Set(
+  LANGS.flatMap(lang => [licensePath(lang), licensePath(lang).replace(/\/$/, "")])
+);
+const isStaticPath = url => STATIC_PATH.test(url) || LICENSE_PATHS.has(url);
 
 export default function staticPagesDev() {
   let root = process.cwd();
@@ -80,7 +92,7 @@ export default function staticPagesDev() {
       // index.html and render the gallery instead of the photo page.
       server.middlewares.use(async (req, res, next) => {
         const url = (req.url ?? "").split("?")[0];
-        if (req.method !== "GET" || !STATIC_PATH.test(url)) return next();
+        if (req.method !== "GET" || !isStaticPath(url)) return next();
 
         try {
           await ensureFresh();

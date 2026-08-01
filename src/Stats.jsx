@@ -16,11 +16,28 @@ const dated = photos.filter((photo) => photo.dateTaken).map((photo) => ({
 }));
 
 // Month names are the one axis label that has to be translated; everything
-// else on these charts is a number. They come from the dictionary (t.months),
-// so every data function below takes the active language's strings.
-const monthLabel = (t, year, month) => `${t.months[month]} ${year}`;
+// else on these charts is a number. They come from the dictionary, so every
+// data function below takes the active language's strings.
+//
+// Two forms of them: the axis reads t.months, three letters wide because that
+// is all a column is, and everything written as text — this label, used by the
+// chart caption, the column tooltip, the mobile row and the span under the
+// shot count — spells the month out, where "ago 2025" only looked clipped.
+const monthLabel = (t, year, month) => `${t.monthsFull[month]} ${year}`;
 
 /* ---------- data ---------- */
+
+// How many months apart two labels have to be for the axis to stay readable.
+// This chart is the one that grows on its own: a bucket per month means a
+// five-year gallery is sixty columns, each a handful of pixels wide, while
+// "gen" needs about twenty — so past a certain span only every step-th month
+// is labelled. Every step divides 12, which keeps January among the labelled
+// ones — it is the bucket carrying the year, and a year that went unlabelled
+// would leave the axis ambiguous. The bars are never thinned, only the text:
+// each column keeps its full month in the title attribute and in the row label
+// the mobile layout shows.
+const labelStep = (months) =>
+  months <= 18 ? 1 : months <= 36 ? 2 : months <= 60 ? 3 : months <= 120 ? 6 : 12;
 
 // One bucket per calendar month between the first and last shot, empty months
 // included: dropping them would compress the gaps and misstate the rhythm.
@@ -29,6 +46,11 @@ function photosPerMonth(t) {
   const times = dated.map((entry) => entry.at.getTime());
   const first = new Date(Math.min(...times));
   const last = new Date(Math.max(...times));
+  const step = labelStep(
+    (last.getUTCFullYear() - first.getUTCFullYear()) * 12 +
+      (last.getUTCMonth() - first.getUTCMonth()) +
+      1,
+  );
 
   const counts = new Map();
   for (const {at} of dated) {
@@ -42,11 +64,18 @@ function photosPerMonth(t) {
   while (year < last.getUTCFullYear() || (year === last.getUTCFullYear() && month <= last.getUTCMonth())) {
     // January and the first bucket anchor the axis: they carry the year (the
     // span crosses one, so a bare "mag" would appear twice meaning different
-    // months) and they are the labels kept when narrow screens hide the rest
+    // months), and they are always among the labelled ones
     const major = month === 0 || buckets.length === 0;
+    const labelled = major || month % step === 0;
     buckets.push({
       key: `${year}-${month}`,
-      label: major ? `${t.months[month]} ${String(year).slice(2)}` : t.months[month],
+      // An unlabelled bucket keeps its column and its bar; the empty string is
+      // what .chart-column-label reserves a line for, so the baseline holds
+      label: labelled
+        ? major
+          ? `${t.months[month]} ${String(year).slice(2)}`
+          : t.months[month]
+        : "",
       full: monthLabel(t, year, month),
       major,
       value: counts.get(`${year}-${month}`) ?? 0,
@@ -201,15 +230,22 @@ function dominant(pick) {
 // handed over as a --fill custom property so the same value can drive its
 // height in one layout and its width in the other, and each bucket carries
 // both of its labels, the short one for the axis and the full one for the row.
-function Columns({data, caption, unit}) {
+function Columns({data, caption, count}) {
   const max = Math.max(...data.map((d) => d.value), 1);
 
   return (
     <figure className="chart">
       <figcaption className="chart-caption">{caption}</figcaption>
-      <div className="chart-columns" role="img" aria-label={caption}>
+      {/* Past three dozen buckets the 4px gutter takes more room than the bar
+          it separates, so a dense chart narrows it rather than the bars */}
+      <div
+        className="chart-columns"
+        style={{"--chart-gap": data.length > 36 ? "2px" : "4px"}}
+        role="img"
+        aria-label={caption}
+      >
         {data.map((d) => (
-          <div className="chart-column" key={d.key} title={`${d.full}: ${d.value} ${unit}`}>
+          <div className="chart-column" key={d.key} title={`${d.full}: ${count(d.value)}`}>
             <span className="chart-row-label">{d.full}</span>
             {/* No mark at all for an empty bucket: the fill has a minimum
                 height so a count of 1 stays visible, and drawing that sliver
@@ -394,7 +430,7 @@ export default function Stats() {
         )}
       </div>
 
-      <Columns data={months} caption={t.chartMonths(busiest)} unit={t.unitShots}/>
+      <Columns data={months} caption={t.chartMonths(busiest)} count={t.shots}/>
 
       <Bars data={species} caption={t.chartSpecies}/>
 
@@ -409,9 +445,9 @@ export default function Stats() {
         />
       )}
 
-      <Columns data={hours} caption={t.chartHours} unit={t.unitShots}/>
+      <Columns data={hours} caption={t.chartHours} count={t.shots}/>
 
-      <Columns data={isos} caption={t.chartIso} unit={t.unitShots}/>
+      <Columns data={isos} caption={t.chartIso} count={t.shots}/>
 
       <h2 className="stats-heading">{t.gearHeading}</h2>
       <table className="gear-table">

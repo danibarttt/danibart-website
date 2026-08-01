@@ -3,6 +3,14 @@ const exifReader = require("exif-reader");
 const fs = require("fs");
 const path = require("path");
 
+// The two shared ESM modules the rest of the site reads the manifest through.
+// Required rather than imported because this script is CommonJS (sharp and
+// exif-reader are its only other dependencies, and it predates the .mjs half);
+// node has supported require() of an ESM module without top-level await since
+// 22.12, and neither of these has one.
+const { resolveHeroes } = require("./hero.mjs");
+const { auditSpecies, canonicalSpecies, missingSpeciesMessage } = require("./species.mjs");
+
 const manifestPath = path.join(__dirname, "..", "photos.json");
 let manifest = require(manifestPath);
 
@@ -40,6 +48,33 @@ if (missingFromDir.length > 0) {
   }
 }
 
+// A multi-species entry is canonically written "Egretta garzetta ·
+// Threskiornis aethiopicus", and "·" is on nobody's keyboard: a list typed
+// with commas or semicolons is rewritten into that form here, so the manifest
+// ends up holding one spelling and nothing downstream has to guess. Same idea
+// as the reordering at the bottom of this file — photos.json is as much
+// generated as it is written by hand.
+const renamed = manifest.filter(
+  photo => photo.species && canonicalSpecies(photo.species) !== photo.species
+);
+if (renamed.length > 0) {
+  for (const photo of renamed) photo.species = canonicalSpecies(photo.species);
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+  for (const photo of renamed) {
+    console.log(`Normalized the species of "${photo.filename}": ${photo.species}`);
+  }
+}
+
+// A species src/species.mjs has no name for stops the run here, before any
+// rendition or page exists — see auditSpecies for why it is not a warning.
+// This is the earliest either dev or build can catch it: both start with this
+// script, and the message says exactly what to paste.
+const missingNames = auditSpecies(manifest);
+if (missingNames.length > 0) {
+  for (const entry of missingNames) console.error(missingSpeciesMessage(entry));
+  process.exit(1);
+}
+
 // Downscaled lightbox renditions: srcSet entries so phones fetch ~1280px
 // (a few hundred KB) instead of the multi-MB full-resolution photo
 const SLIDE_WIDTHS = [1280, 2048];
@@ -71,12 +106,17 @@ for (const file of fs.readdirSync(slidesOutputDir)) {
   }
 }
 
-// The hero background gets its own screen-sized derivative; only hero-flagged
-// entries need one (hero, or the viewport-specific heroSmall/heroLarge), so
-// stale files also include photos that lost the flag
-const heroNames = manifest
-  .filter(photo => photo.hero || photo.heroSmall || photo.heroLarge)
-  .map(photo => photo.filename);
+// The hero background gets its own screen-sized derivative. Which photos need
+// one is asked of src/hero.mjs — the same resolution the gallery and the
+// preload tags use — rather than read off the flags: a manifest naming only
+// heroLarge leaves the narrow viewport on the first entry, a different photo
+// each time a newer one is added, and that one needs its rendition just as
+// much. Stale files therefore include both photos that lost a flag and photos
+// that stopped being the fallback.
+const heroes = resolveHeroes(manifest);
+const heroNames = [
+  ...new Set([heroes.small?.filename, heroes.large?.filename].filter(Boolean)),
+];
 for (const file of fs.readdirSync(heroOutputDir)) {
   if (!heroNames.includes(stem(file))) {
     fs.unlinkSync(path.join(heroOutputDir, file));

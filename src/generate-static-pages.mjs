@@ -35,6 +35,7 @@ import path from "path";
 import {
   LANGS,
   formatDate,
+  licensePath,
   photoDescription,
   photoPath,
   photoTitle,
@@ -42,6 +43,7 @@ import {
   speciesPath,
   strings,
 } from "./i18n.mjs";
+import { HERO_LARGE_QUERY, HERO_SMALL_QUERY, resolveHeroes } from "./hero.mjs";
 import { photoId } from "./photo-id.mjs";
 import {
   ITALY_PATH,
@@ -51,7 +53,14 @@ import {
   positionLabel,
   regionName,
 } from "./regions.mjs";
-import { collectSpecies, commonName, speciesSlugFor, splitSpecies } from "./species.mjs";
+import {
+  auditSpecies,
+  collectSpecies,
+  commonName,
+  missingSpeciesMessage,
+  speciesSlugFor,
+  splitSpecies,
+} from "./species.mjs";
 
 const DEV = process.env.STATIC_PAGES_DEV === "1";
 
@@ -91,11 +100,44 @@ const escapeHtml = text =>
 // close the script tag early)
 const jsonLd = data => JSON.stringify(data).replace(/</g, "\\u003c");
 
+// An @id is an identifier, not a link: nothing has to answer at
+// https://danibart.it/#person and no crawler fetches it. What it does mean is
+// that a page referring to one has to *define* that node in its own @graph —
+// a reference is only resolved within the graph it appears in, so pointing at
+// a node that exists solely in dist/index.html leaves the property with no
+// data attached. Hence the two builders below: every page carries the nodes it
+// names, at the size that page needs them.
+const PERSON_ID = `${SITE}/#person`;
+const GALLERY_ID = `${SITE}/#gallery`;
+
 const AUTHOR = {
   "@type": "Person",
-  "@id": `${SITE}/#person`,
+  "@id": PERSON_ID,
   name: "Daniele Bartorilla",
   url: `${SITE}/`,
+};
+
+// The email stays on the home page's copy alone. It is the one node repeated
+// across a couple of hundred static pages, and there is no reason to publish
+// an address that many times over.
+const authorNode = lang => ({ ...AUTHOR, jobTitle: strings(lang).jobTitle });
+
+// Enough of the gallery for an isPartOf to resolve to something named; the
+// full node, with every photo listed, lives on the home page.
+const galleryNode = lang => ({
+  "@type": ["WebSite", "ImageGallery"],
+  "@id": GALLERY_ID,
+  name: strings(lang).siteName,
+  url: `${SITE}/`,
+});
+
+// Google Images shows a "Licensable" badge on an image whose ImageObject says
+// both what the terms are and where to ask for them. Both point at the license
+// page: it states the terms and carries the address to write to. Without them
+// Search Console reports the pair as missing optional fields on every photo.
+const imageLicense = lang => {
+  const url = `${SITE}${licensePath(lang)}`;
+  return { license: url, acquireLicensePage: url };
 };
 
 // The page a language switch leads to, for every kind of page here. Both
@@ -105,6 +147,7 @@ const speciesPaths = latin =>
   Object.fromEntries(LANGS.map(lang => [lang, speciesPath(speciesSlugFor(latin, lang), lang)]));
 const speciesIndexPaths = () =>
   Object.fromEntries(LANGS.map(lang => [lang, speciesIndexPath(lang)]));
+const licensePaths = () => Object.fromEntries(LANGS.map(lang => [lang, licensePath(lang)]));
 
 /* ---------- shared photo helpers ---------- */
 
@@ -335,6 +378,11 @@ h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4.5vw,46px);lin
 .species-list em{font-style:italic;color:var(--muted);font-size:13px;display:block}
 .species-list b{font-weight:500}
 .species-list .count{color:var(--accent);font-size:13px;flex:none}
+/* The license page: running prose, unlike everything else here, so it gets a
+   reading measure and a heading style of its own */
+.prose{max-width:64ch}
+.prose h2{font-family:var(--serif);font-weight:500;font-size:25px;line-height:1.25;margin:36px 0 10px}
+.prose p{margin:0 0 14px}
 footer{border-top:1px solid rgb(var(--text-rgb) / .12);margin-top:56px;padding-top:22px;color:var(--muted);font-size:13px}
 footer a{color:var(--muted)}
 /* The two preference controls, mirroring .theme-toggle / .lang-toggle in
@@ -451,9 +499,9 @@ const footerHtml = lang => {
         <p>${escapeHtml(t.footerRights(new Date().getFullYear()))}</p>
         <p><a href="/">${t.navGallery}</a> · <a href="${speciesIndexPath(lang)}">${
           t.navSpecies
-        }</a> · <a href="/#/privacy">${t.footerPrivacy}</a> · <a href="/#/cookie">${
-          t.footerCookie
-        }</a></p>
+        }</a> · <a href="${licensePath(lang)}">${t.footerLicense}</a> · <a href="/#/privacy">${
+          t.footerPrivacy
+        }</a> · <a href="/#/cookie">${t.footerCookie}</a></p>
       </footer>`;
 };
 
@@ -678,11 +726,14 @@ function buildPhotoPages(lang) {
                 },
               }
             : {}),
-          creator: AUTHOR,
+          creator: { "@id": PERSON_ID },
           creditText: "Daniele Bartorilla",
           copyrightNotice: "© Daniele Bartorilla",
-          isPartOf: { "@id": `${SITE}/#gallery` },
+          ...imageLicense(lang),
+          isPartOf: { "@id": GALLERY_ID },
         },
+        authorNode(lang),
+        galleryNode(lang),
         {
           "@type": "BreadcrumbList",
           itemListElement: [
@@ -811,6 +862,16 @@ const speciesList = collectSpecies(manifest).map(latin => ({
   photos: manifest.filter(photo => speciesOf(photo).includes(latin)),
 }));
 
+// generate-photos.js checks this too and runs first in both dev and build, but
+// the dev server re-runs *this* script on its own whenever photos.json
+// changes — so a species added mid-session would otherwise reach the page
+// through the Latin fallback without anyone being told. See auditSpecies.
+const missingNames = auditSpecies(manifest);
+if (missingNames.length > 0) {
+  for (const entry of missingNames) console.error(missingSpeciesMessage(entry));
+  process.exit(1);
+}
+
 // A slug collision would silently overwrite one species' page with another's.
 // Checked per language: the Italian names could be distinct where the English
 // ones are not.
@@ -848,16 +909,21 @@ function buildSpeciesPages(lang) {
           description,
           url: pageUrl,
           inLanguage: lang,
-          isPartOf: { "@id": `${SITE}/#gallery` },
+          isPartOf: { "@id": GALLERY_ID },
           about: { "@type": "Taxon", name: latin, alternateName: name },
           hasPart: photos.map(photo => ({
             "@type": "ImageObject",
             contentUrl: socialUrl(photo),
             url: `${SITE}${photoPath(idOf(photo), lang)}`,
             name: titleOf(photo, lang),
-            creator: { "@id": AUTHOR["@id"] },
+            creator: { "@id": PERSON_ID },
+            creditText: "Daniele Bartorilla",
+            copyrightNotice: "© Daniele Bartorilla",
+            ...imageLicense(lang),
           })),
         },
+        authorNode(lang),
+        galleryNode(lang),
         {
           "@type": "BreadcrumbList",
           itemListElement: [
@@ -956,10 +1022,52 @@ ${ordered
   );
 }
 
+/* ---------- license ---------- */
+
+// What the `license` and `acquireLicensePage` fields of every ImageObject point
+// at, and the page a visitor who wants to use a photograph is sent to. It has
+// to be a real, crawlable URL: Google drops the fragment, so a hash route in
+// the SPA would have resolved to the home page and left the fields pointing at
+// nothing in particular.
+function buildLicensePage(lang) {
+  const t = strings(lang);
+  const paths = licensePaths();
+  const title = `${t.licenseTitle} — ${t.siteName}`;
+
+  const body = `      <article class="prose">
+        <p class="overline">${t.licenseOverline}</p>
+        <h1>${t.licenseTitle}</h1>
+        <p class="lede">${t.licenseLede}</p>
+        <h2>${t.licenseTermsHeading}</h2>
+        <p>${t.licenseTermsBody}</p>
+        <h2>${t.licenseAcquireHeading}</h2>
+        <p>${t.licenseAcquireBody}</p>
+        <p><a href="mailto:${EMAIL}">${EMAIL}</a></p>
+        <h2>${t.licenseCreditHeading}</h2>
+        <p>${t.licenseCreditBody}</p>
+      </article>`;
+
+  writePage(
+    paths[lang],
+    layout({
+      lang,
+      title,
+      description: t.licenseDescription,
+      paths,
+      head: `    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:url" content="${SITE}${paths[lang]}" />
+`,
+      body,
+    })
+  );
+}
+
 for (const lang of LANGS) {
   buildPhotoPages(lang);
   buildSpeciesPages(lang);
   buildSpeciesIndex(lang);
+  buildLicensePage(lang);
 }
 console.log(
   `Static pages created: ${manifest.length} photos × ${LANGS.length} languages, ` +
@@ -984,9 +1092,7 @@ const siteStrings = strings(SITE_LANG);
 
 // With split heroSmall/heroLarge heroes, the large one represents the site
 // (Open Graph previews are landscape-shaped, like wide viewports).
-const heroFallback = manifest.find(photo => photo.hero) ?? manifest[0];
-const heroLarge = manifest.find(photo => photo.heroLarge) ?? heroFallback;
-const heroSmall = manifest.find(photo => photo.heroSmall) ?? heroFallback;
+const { small: heroSmall, large: heroLarge } = resolveHeroes(manifest);
 const hero = heroLarge;
 const indexPath = path.join(distDir, "index.html");
 
@@ -997,18 +1103,14 @@ const siteLd = jsonLd({
   "@context": "https://schema.org",
   "@graph": [
     {
-      ...AUTHOR,
-      jobTitle: siteStrings.jobTitle,
+      ...authorNode(SITE_LANG),
       email: `mailto:${EMAIL}`,
     },
     {
-      "@type": ["WebSite", "ImageGallery"],
-      "@id": `${SITE}/#gallery`,
-      name: siteStrings.siteName,
+      ...galleryNode(SITE_LANG),
       description: siteStrings.siteDescription,
-      url: `${SITE}/`,
       inLanguage: LANGS,
-      author: { "@id": AUTHOR["@id"] },
+      author: { "@id": PERSON_ID },
       associatedMedia: manifest.map(photo => ({
         "@type": "ImageObject",
         contentUrl: socialUrl(photo),
@@ -1017,9 +1119,10 @@ const siteLd = jsonLd({
         ...(photo.description || photo.species
           ? { description: photo.description || photo.species }
           : {}),
-        creator: { "@id": AUTHOR["@id"] },
+        creator: { "@id": PERSON_ID },
         creditText: "Daniele Bartorilla",
         copyrightNotice: "© Daniele Bartorilla",
+        ...imageLicense(SITE_LANG),
       })),
     },
   ],
@@ -1056,13 +1159,14 @@ if (!indexHtml.includes("</head>")) {
 // type="image/avif" makes browsers without AVIF support skip the preload and
 // fall through to the webp <source>, so no viewport downloads two heroes.
 // With distinct small/large heroes, each preload also carries the media query
-// of the viewport it serves — mirroring HERO_LARGE_QUERY in Gallery.jsx.
+// of the viewport it serves — both come from src/hero.mjs, the same pair the
+// gallery switches on.
 const heroVariants =
   heroSmall.filename === heroLarge.filename
     ? [{ photo: heroLarge }]
     : [
-        { photo: heroSmall, media: "(max-width: 1023.98px)" },
-        { photo: heroLarge, media: "(min-width: 1024px)" },
+        { photo: heroSmall, media: HERO_SMALL_QUERY },
+        { photo: heroLarge, media: HERO_LARGE_QUERY },
       ];
 
 let preloadTag = "";
@@ -1123,6 +1227,9 @@ ${[
       lastmod: newestDate(manifest),
       priority: "0.6",
     }),
+    // No lastmod: the license text does not follow the photos, and dating it
+    // from the newest one would claim a change that never happened
+    urlEntry(`${SITE}${licensePath(lang)}`, { priority: "0.3" }),
     ...speciesList.map(({ latin, photos }) =>
       urlEntry(`${SITE}${speciesPath(speciesSlugFor(latin, lang), lang)}`, {
         lastmod: newestDate(photos),

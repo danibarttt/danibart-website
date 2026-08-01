@@ -91,6 +91,12 @@ export const photoDescription = (photo, lang) =>
 export const photoPath = (id, lang) => (lang === "en" ? `/en/p/${id}/` : `/p/${id}/`);
 export const speciesPath = (slug, lang) => (lang === "en" ? `/en/s/${slug}/` : `/s/${slug}/`);
 export const speciesIndexPath = lang => (lang === "en" ? "/en/s/" : "/s/");
+// The one path whose own segment is translated. Everywhere else a URL segment
+// is an id — a photo's, a species' — and an id is never translated, or the two
+// languages would stop naming the same thing. This page has no id: it is a
+// page, nothing points at it but the footer and the license fields of the
+// structured data, and both are built per language.
+export const licensePath = lang => (lang === "en" ? "/en/license/" : "/licenza/");
 
 /* ---------- strings ---------- */
 
@@ -155,6 +161,21 @@ const IT = {
   galleryShowAll: "Mostra tutti",
   galleryNew: "Nuova",
 
+  // The two cards below the gallery, one per sub-page: they are the only way
+  // into /specie and /numeri that does not go through the nav
+  previewSpeciesOverline: "Indice",
+  previewSpeciesTitle: "Le specie fotografate",
+  previewSpeciesSub: "Tutte le specie della galleria, ciascuna con i suoi scatti.",
+  previewSpeciesCta: "Sfoglia il catalogo",
+  previewStatsOverline: "Dati di scatto",
+  previewStatsTitle: "I numeri dietro le foto",
+  previewStatsSub:
+    "Stagioni, orari, luoghi e attrezzatura: le mie uscite raccontate in grafici.",
+  previewStatsCta: "Guarda le statistiche",
+  previewStatShots: "scatti",
+  previewStatSpecies: "specie",
+  previewStatPlaces: n => (n === 1 ? "zona" : "zone"),
+
   aboutOverline: "Chi sono",
   aboutTitle: "Dietro l'obiettivo",
   aboutPortrait: "Ritratto di Daniele Bartorilla",
@@ -201,7 +222,25 @@ const IT = {
   statsTitle: "Numeri",
   statsSub:
     "Cosa raccontano i dati di scatto delle foto in galleria: quando esco, cosa incontro e con che impostazioni.",
+  // Abbreviated for the axis of the monthly chart, which has a column's width
+  // and no more. Everywhere a month is named in running text — the caption,
+  // the column tooltip, the mobile row, the span under the shot count — there
+  // is room to spell it out, so those read monthsFull instead.
   months: ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"],
+  monthsFull: [
+    "gennaio",
+    "febbraio",
+    "marzo",
+    "aprile",
+    "maggio",
+    "giugno",
+    "luglio",
+    "agosto",
+    "settembre",
+    "ottobre",
+    "novembre",
+    "dicembre",
+  ],
   statPublished: "Scatti pubblicati",
   statSpecies: "Specie",
   statSpeciesSub: name => `la più frequente è ${name}`,
@@ -215,7 +254,6 @@ const IT = {
   chartIso: "Sensibilità ISO",
   hourLabel: hour => `ore ${hour}:00`,
   isoLabel: iso => `ISO ${iso}`,
-  unitShots: "scatti",
   chartRegionsOne: region => `Dove scatto — tutto in ${region}`,
   chartRegionsMany: n => `Dove scatto — ${n} zone`,
   regionMapAria: list =>
@@ -231,6 +269,23 @@ const IT = {
     `© ${year} Daniele Bartorilla. Tutti i diritti sul sito, relativi contenuti e foto sono riservati.`,
   footerPrivacy: "Privacy Policy",
   footerCookie: "Cookie Policy",
+  footerLicense: "Licenza d'uso",
+
+  licenseOverline: "Diritti",
+  licenseTitle: "Licenza d'uso",
+  licenseDescription:
+    "Condizioni d'uso delle fotografie di Daniele Bartorilla e come richiederne la licenza.",
+  licenseLede:
+    "Le fotografie pubblicate su questo sito sono opere protette dal diritto d'autore: sono tutte © Daniele Bartorilla, nessuna è di pubblico dominio e nessuna è libera da diritti.",
+  licenseTermsHeading: "Cosa non è consentito",
+  licenseTermsBody:
+    "Senza una mia autorizzazione scritta le immagini non possono essere scaricate, copiate, ripubblicate, modificate, ritagliate o rivendute, né a scopo di lucro né gratuitamente. Contano come pubblicazione anche i social network, i blog, la stampa, i materiali pubblicitari e l'addestramento di modelli di intelligenza artificiale.",
+  licenseAcquireHeading: "Come ottenere una licenza",
+  licenseAcquireBody:
+    "Le fotografie possono essere concesse in licenza, valutando caso per caso. Scrivimi indicando quale ti interessa — basta il link alla sua pagina —, dove vorresti pubblicarla e per quanto tempo: ti rispondo con condizioni e costi.",
+  licenseCreditHeading: "Credito",
+  licenseCreditBody:
+    "Ogni utilizzo autorizzato va accompagnato dalla dicitura «© Daniele Bartorilla», accanto all'immagine o nei crediti fotografici.",
 
   photoOverline: "Scatto",
   photoOpenInGallery: "Apri nella galleria",
@@ -313,6 +368,19 @@ const EN = {
   galleryShowAll: "Show all",
   galleryNew: "New",
 
+  previewSpeciesOverline: "Index",
+  previewSpeciesTitle: "The species photographed",
+  previewSpeciesSub: "Every species in the gallery, each with its own shots.",
+  previewSpeciesCta: "Browse the catalogue",
+  previewStatsOverline: "Shooting data",
+  previewStatsTitle: "The numbers behind the photos",
+  previewStatsSub:
+    "Seasons, hours, places and gear: my outings told in charts.",
+  previewStatsCta: "See the statistics",
+  previewStatShots: "shots",
+  previewStatSpecies: "species",
+  previewStatPlaces: n => (n === 1 ? "area" : "areas"),
+
   aboutOverline: "About me",
   aboutTitle: "Behind the lens",
   aboutPortrait: "Portrait of Daniele Bartorilla",
@@ -363,6 +431,20 @@ const EN = {
     "What the shooting data behind the gallery says: when I go out, what I run into and what settings I use.",
   // Capitalised, unlike the Italian ones: English capitalises month names
   months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  monthsFull: [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ],
   statPublished: "Published shots",
   statSpecies: "Species",
   statSpeciesSub: name => `the most frequent is the ${name}`,
@@ -376,7 +458,6 @@ const EN = {
   chartIso: "ISO sensitivity",
   hourLabel: hour => `${hour}:00`,
   isoLabel: iso => `ISO ${iso}`,
-  unitShots: "shots",
   chartRegionsOne: region => `Where I shoot — all of it in ${region}`,
   chartRegionsMany: n => `Where I shoot — ${n} areas`,
   regionMapAria: list => `Map of Italy with the regions of the shots highlighted: ${list}`,
@@ -391,6 +472,25 @@ const EN = {
     `© ${year} Daniele Bartorilla. All rights to this site, its contents and its photographs are reserved.`,
   footerPrivacy: "Privacy Policy",
   footerCookie: "Cookie Policy",
+  // "Licensing" rather than the noun, which British English spells "licence"
+  // while the URL and the schema.org field are both "license"
+  footerLicense: "Licensing",
+
+  licenseOverline: "Rights",
+  licenseTitle: "Licensing",
+  licenseDescription:
+    "The terms of use for Daniele Bartorilla's photographs, and how to license one.",
+  licenseLede:
+    "The photographs published on this site are copyright works: they are all © Daniele Bartorilla, none of them is in the public domain and none of them is royalty-free.",
+  licenseTermsHeading: "What is not allowed",
+  licenseTermsBody:
+    "Without my written permission the images may not be downloaded, copied, republished, altered, cropped or resold, whether for profit or free of charge. Social networks, blogs, the press, advertising material and the training of artificial-intelligence models all count as publication.",
+  licenseAcquireHeading: "How to obtain a licence",
+  licenseAcquireBody:
+    "The photographs can be licensed, case by case. Write to me saying which one you are interested in — a link to its page is enough — where you would like to publish it and for how long, and I will come back to you with the terms and a price.",
+  licenseCreditHeading: "Credit",
+  licenseCreditBody:
+    "Every authorised use must carry the line “© Daniele Bartorilla”, next to the image or in the photo credits.",
 
   photoOverline: "Photograph",
   photoOpenInGallery: "Open in the gallery",

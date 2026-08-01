@@ -3,21 +3,24 @@ import {
   useEffect,
   useRef,
   useCallback,
+  useLayoutEffect,
   useMemo,
   memo,
   startTransition,
 } from "react";
 import Lightbox, {ImageSlide} from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
-import {useNavigate, useLocation} from "react-router";
+import {Link, useNavigate, useLocation} from "react-router";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import "yet-another-react-lightbox/plugins/thumbnails.css";
 import Slideshow from "yet-another-react-lightbox/plugins/slideshow";
 import photos from "./photos";
+import {HERO_LARGE_QUERY, resolveHeroes} from "./hero.mjs";
 import {photoDescription, photoPath, photoTitle} from "./i18n.mjs";
 import {useLang} from "./lang";
 import {collectSpecies, commonName, speciesSlug, splitSpecies} from "./species.mjs";
+import {findRegion} from "./regions.mjs";
 import {LangToggle, ThemeToggle} from "./Toggles";
 import "./lightbox.css";
 
@@ -55,14 +58,10 @@ function useReveal() {
   return [ref, shown];
 }
 
-// Two hero photos may be designated in photos.json: heroSmall (narrow
-// viewports) and heroLarge (wide viewports, where object-fit: cover crops
-// tall photos the most). A plain hero: true photo backs both as fallback.
-// The breakpoint must match the preload media queries in generate-static-pages.mjs.
-const HERO_LARGE_QUERY = "(min-width: 1024px)";
-const heroFallback = photos.find((p) => p.hero) ?? photos[0];
-const heroSmallPhoto = photos.find((p) => p.heroSmall) ?? heroFallback;
-const heroLargePhoto = photos.find((p) => p.heroLarge) ?? heroFallback;
+// Which photo backs the hero at which viewport lives in src/hero.mjs: the
+// preload tags in generate-static-pages.mjs and the renditions built by
+// generate-photos.js have to agree with this exactly, breakpoint included.
+const {small: heroSmallPhoto, large: heroLargePhoto} = resolveHeroes(photos);
 
 function useHeroPhoto() {
   const [isLarge, setIsLarge] = useState(
@@ -198,6 +197,17 @@ function distributeIntoColumns(items, columnCount) {
 }
 
 const scrollToTop = () => window.scrollTo({top: 0, behavior: "smooth"});
+
+// Where the gallery was when it was last left. Every route away from "/"
+// unmounts Gallery, and coming back — through "Torna alla galleria", the
+// browser's back button, or a card in the previews section — would otherwise
+// drop the visitor at the hero, with the photos they were looking at somewhere
+// far below. Module scope rather than sessionStorage on purpose: this is a
+// "back" affordance within one run of the SPA, and a fresh load of "/" should
+// start at the top. The photo boxes are sized from their width/height
+// attributes, so the document is already its full height at mount and the
+// position is reachable before a single thumbnail has loaded.
+let lastGalleryScroll = 0;
 
 // The nav mixes in-page sections (scrolled to) with routes (navigated to);
 // shared by the hero nav, the sticky nav and the mobile drawer so the three
@@ -504,6 +514,144 @@ function Featured({onOpen}) {
   );
 }
 
+/* ---------- Sub-page teasers ---------- */
+
+// /specie and /numeri hang off the nav alone, which on the home page is either
+// scrolled past or folded into the hamburger. These two cards sit where the
+// gallery ends — the point where a visitor is done scrolling photos and might
+// want another way through them — and each shows enough of its page to say
+// what is on the other side of the link.
+
+const PREVIEW_COVERS = 5;
+
+// The most photographed species first, each with its most recent shot (photos
+// is already ordered by shooting date). Language-independent: which species
+// come out on top is a property of the manifest, and only their names change.
+const previewCovers = allSpecies
+  .map((latin) => ({
+    latin,
+    taken: photos.filter(
+      (photo) => photo.species && splitSpecies(photo.species).includes(latin),
+    ),
+  }))
+  .sort((a, b) => b.taken.length - a.taken.length)
+  .slice(0, PREVIEW_COVERS)
+  .map(({latin, taken}) => ({latin, cover: taken[0]}));
+
+// Places counted the way /numeri groups them: anything findRegion resolves
+// collapses into its region, and a position it does not know stands for itself
+const previewPlaceCount = new Set(
+  photos
+    .map((photo) => photo.position?.trim())
+    .filter(Boolean)
+    .map((position) => findRegion(position) ?? position),
+).size;
+
+// The last twelve months as a bare sparkline: the shape of the months chart on
+// /numeri with its axis and labels taken off. UTC accessors throughout, as
+// everywhere the EXIF date is read (see photoYear above).
+const SPARK_MONTHS = 12;
+
+const previewSpark = (() => {
+  const dates = photos
+    .map((photo) => photo.dateTaken && new Date(photo.dateTaken))
+    .filter(Boolean);
+  if (dates.length === 0) return [];
+
+  const counts = new Map();
+  for (const date of dates) {
+    const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const last = new Date(Math.max(...dates.map((date) => date.getTime())));
+  return Array.from({length: SPARK_MONTHS}, (_, index) => {
+    const month = new Date(
+      Date.UTC(
+        last.getUTCFullYear(),
+        last.getUTCMonth() - (SPARK_MONTHS - 1 - index),
+        1,
+      ),
+    );
+    return counts.get(`${month.getUTCFullYear()}-${month.getUTCMonth()}`) ?? 0;
+  });
+})();
+
+const previewSparkMax = Math.max(...previewSpark, 1);
+
+function Previews() {
+  const {t} = useLang();
+  const [ref, shown] = useReveal();
+
+  return (
+    <section ref={ref} className={`section previews reveal${shown ? " shown" : ""}`}>
+      <div className="preview-grid">
+        <Link className="preview-card" to="/specie">
+          <p className="overline">{t.previewSpeciesOverline}</p>
+          <h2 className="preview-title">{t.previewSpeciesTitle}</h2>
+          <p className="preview-sub">{t.previewSpeciesSub}</p>
+          {/* Decorative: the covers stand for the index, and the card's own
+              text already names what the link leads to */}
+          <div className="preview-thumbs" aria-hidden="true">
+            {previewCovers.map(({latin, cover}) => (
+              <picture key={latin}>
+                {cover.thumbnailAvif && (
+                  <source srcSet={cover.thumbnailAvif} type="image/avif"/>
+                )}
+                {cover.thumbnailWebp && (
+                  <source srcSet={cover.thumbnailWebp} type="image/webp"/>
+                )}
+                <img src={cover.thumbnail} alt="" loading="lazy" decoding="async"/>
+              </picture>
+            ))}
+          </div>
+          <span className="preview-cta">{t.previewSpeciesCta}</span>
+        </Link>
+
+        <Link className="preview-card" to="/numeri">
+          <p className="overline">{t.previewStatsOverline}</p>
+          <h2 className="preview-title">{t.previewStatsTitle}</h2>
+          <p className="preview-sub">{t.previewStatsSub}</p>
+          <div className="preview-figures">
+            <span className="preview-figure">
+              <b>{photos.length}</b>
+              {t.previewStatShots}
+            </span>
+            <span className="preview-figure">
+              <b>{allSpecies.length}</b>
+              {t.previewStatSpecies}
+            </span>
+            {previewPlaceCount > 0 && (
+              <span className="preview-figure">
+                <b>{previewPlaceCount}</b>
+                {t.previewStatPlaces(previewPlaceCount)}
+              </span>
+            )}
+          </div>
+          {previewSpark.length > 0 && (
+            <div className="preview-spark" aria-hidden="true">
+              {previewSpark.map((value, index) => (
+                <span
+                  key={index}
+                  /* A month with no shots gets no mark at all, as on the
+                     charts: a sliver would read as a small count, not as none.
+                     The floor keeps a single shot visible. */
+                  style={{
+                    height: value
+                      ? `${Math.max((value / previewSparkMax) * 100, 8)}%`
+                      : 0,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+          <span className="preview-cta">{t.previewStatsCta}</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function About() {
   const {t} = useLang();
   const [ref, shown] = useReveal();
@@ -723,6 +871,24 @@ export default function Gallery() {
     if (enteredFiltered.current) scrollTo("galleria");
   }, []);
 
+  // Restored before paint, so the page never flashes at the top first.
+  // "instant" is explicit because html carries scroll-behavior: smooth, which
+  // would otherwise animate the whole way down. A filtered entry wins: there
+  // the visitor asked for the gallery, not for wherever they had been.
+  useLayoutEffect(() => {
+    if (!enteredFiltered.current && lastGalleryScroll > 0) {
+      window.scrollTo({top: lastGalleryScroll, behavior: "instant"});
+    }
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      lastGalleryScroll = window.scrollY;
+    };
+    window.addEventListener("scroll", onScroll, {passive: true});
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
 
   // Stable identity: a new render function each Gallery render (which happens
@@ -892,6 +1058,8 @@ export default function Gallery() {
           </div>
         )}
       </section>
+
+      <Previews/>
 
       <About/>
 
