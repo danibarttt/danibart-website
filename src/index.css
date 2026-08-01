@@ -128,6 +128,25 @@ html {
   -webkit-tap-highlight-color: rgb(var(--accent-rgb) / 0.15);
 }
 
+/* …except on the pills and circles: the tap flash is painted as the element's
+   rectangle whatever its border-radius, so a chip flashed as a square. They
+   opt out of it and get the same tint back as an :active background, which
+   does follow the radius (and shows on a desktop press too). */
+.species-chip,
+.theme-toggle {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.species-chip:active,
+.theme-toggle:active {
+  background: rgb(var(--accent-rgb) / 0.15);
+}
+
+/* An active chip is already filled with the accent, so it darkens instead */
+.species-chip.active:active {
+  background: rgb(var(--accent-rgb) / 0.75);
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -1383,13 +1402,22 @@ button:focus-visible {
   align-items: flex-end;
 }
 
-/* Rounded at the data end, square at the baseline */
+/* Rounded at the data end, square at the baseline. The extent arrives as
+   --fill rather than an inline height: the mobile layout below reads the same
+   number as a width, which an inline style could not be turned into. */
 .chart-column-fill {
   position: relative;
   width: 100%;
+  height: var(--fill);
   min-height: 2px;
   background: var(--accent);
   border-radius: 4px 4px 0 0;
+}
+
+/* The row-shaped labels only exist below 600px */
+.chart-row-label,
+.chart-row-value {
+  display: none;
 }
 
 .chart-column-value {
@@ -1409,23 +1437,6 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.chart-table {
-  margin-top: 18px;
-  font-size: 13px;
-}
-
-.chart-table summary {
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.chart-table table {
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.chart-table th,
-.chart-table td,
 .gear-table th,
 .gear-table td {
   text-align: left;
@@ -1435,7 +1446,6 @@ button:focus-visible {
   color: var(--muted);
 }
 
-.chart-table td,
 .gear-table td:last-child {
   font-variant-numeric: tabular-nums;
 }
@@ -1497,6 +1507,85 @@ button:focus-visible {
   }
 }
 
+/* Where the photos come from: the map on one side, the same numbers as bars on
+   the other, so the ranking is readable without decoding shades of gold */
+.region-chart {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.region-map {
+  flex: none;
+  width: 150px;
+  height: auto;
+}
+
+.region-map-country {
+  fill: none;
+  stroke: rgb(var(--text-rgb) / 0.28);
+  stroke-width: 0.45;
+  stroke-linejoin: round;
+}
+
+.region-map-active {
+  fill: var(--accent);
+  stroke: var(--accent);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+
+.region-list {
+  flex: 1 1 320px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.region-list li {
+  display: grid;
+  grid-template-columns: minmax(120px, 190px) 1fr 34px;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 0;
+}
+
+.region-list-name {
+  font-size: 14px;
+}
+
+/* A place outside the map keeps its row and its count, but has no bar to sit
+   in the same scale as the regions */
+.region-list-other .region-list-name {
+  color: var(--muted);
+}
+
+.region-single {
+  margin: 0;
+}
+
+.region-single b {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.region-single span {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.region-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 18px 0 0;
+}
+
 .stats-heading {
   font-family: var(--serif);
   font-weight: 500;
@@ -1512,11 +1601,6 @@ button:focus-visible {
 
 .gear-table th {
   color: var(--text);
-}
-
-.stats-note {
-  font-size: 13px;
-  margin-top: 26px;
 }
 
 /* ---------- Responsive ---------- */
@@ -1541,18 +1625,72 @@ button:focus-visible {
     padding-top: 40px;
   }
 
-  /* Too many columns to label every one at this width: only the anchors
-     (January on the month axis, every third hour) keep their label. The full
-     values stay reachable in the chart's own table. */
-  .chart-column-label:not(.major) {
-    visibility: hidden;
+  /* Twenty-odd columns across a phone are too narrow to label at all, so the
+     column charts lie down into one row per bucket — the same shape as the
+     species ranking, and the page scrolls the way a phone already does.
+     Same markup as the desktop chart: the axis labels and the value on top of
+     each column drop out, the row label and the row value take over, and the
+     bar reads --fill as a width instead of a height. */
+  .chart-columns {
+    display: block;
+    border-bottom: none;
   }
 
-  .chart-column-value {
+  .chart-column {
+    display: grid;
+    grid-template-columns: minmax(96px, 140px) 1fr 28px;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+  }
+
+  .chart-row-label {
+    display: block;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chart-column-track {
+    max-width: none;
+    height: 14px;
+    align-items: stretch;
+  }
+
+  .chart-column-fill {
+    width: var(--fill);
+    height: 100%;
+    min-width: 2px;
+    min-height: 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .chart-column-value,
+  .chart-column-label {
     display: none;
   }
 
+  .chart-row-value {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
   .chart-bars a {
+    grid-template-columns: minmax(96px, 140px) 1fr 28px;
+    gap: 10px;
+  }
+
+  /* Once the map and its numbers stop sharing a line, the map sits alone on
+     its own and belongs in the middle of it */
+  .region-chart {
+    justify-content: center;
+  }
+
+  .region-list li {
     grid-template-columns: minmax(96px, 140px) 1fr 28px;
     gap: 10px;
   }

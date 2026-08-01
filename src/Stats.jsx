@@ -1,6 +1,7 @@
 import {useMemo} from "react";
 import {Link} from "react-router";
 import photos from "./photos";
+import {findRegion, ITALY_PATH, MAP_VIEWBOX, REGION_PATHS} from "./regions.mjs";
 import {collectSpecies, commonName, speciesSlug, splitSpecies} from "./species.mjs";
 import {SubPage} from "./SubPage";
 
@@ -71,6 +72,29 @@ function photosPerSpecies() {
       ).length,
     }))
     .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "it"));
+}
+
+// The manifest's "position" field, counted per Italian region so the map can
+// shade them. A position naming no region it knows (a foreign trip) is not
+// dropped: it is counted separately and listed under the map, which keeps the
+// totals honest.
+function photosPerRegion() {
+  const regions = new Map();
+  const elsewhere = new Map();
+  for (const photo of photos) {
+    const position = photo.position?.trim();
+    if (!position) continue;
+    const region = findRegion(position);
+    const bucket = region ? regions : elsewhere;
+    const key = region ?? position;
+    bucket.set(key, (bucket.get(key) ?? 0) + 1);
+  }
+  const rank = (a, b) => b.value - a.value || a.name.localeCompare(b.name, "it");
+  return {
+    regions: [...regions.entries()].map(([name, value]) => ({name, value})).sort(rank),
+    elsewhere: [...elsewhere.entries()].map(([name, value]) => ({name, value})).sort(rank),
+    total: [...regions.values(), ...elsewhere.values()].reduce((sum, n) => sum + n, 0),
+  };
 }
 
 // Continuous span from the earliest to the latest hour of the day with a shot,
@@ -162,6 +186,14 @@ function dominant(pick) {
 // Bars are plain elements rather than SVG: an SVG scaled to a phone shrinks its
 // own labels into illegibility, while a flex row reflows and keeps the text at
 // its real size.
+//
+// Below 600px the whole thing turns on its side — one full-width row per
+// bucket, like the species ranking — because twenty-odd columns across a phone
+// leave no room to label any of them. That is a pure CSS flip (see
+// .chart-columns in index.css) on a single set of markup: the bar's extent is
+// handed over as a --fill custom property so the same value can drive its
+// height in one layout and its width in the other, and each bucket carries
+// both of its labels, the short one for the axis and the full one for the row.
 function Columns({data, caption, unit = "scatti"}) {
   const max = Math.max(...data.map((d) => d.value), 1);
 
@@ -171,15 +203,13 @@ function Columns({data, caption, unit = "scatti"}) {
       <div className="chart-columns" role="img" aria-label={caption}>
         {data.map((d) => (
           <div className="chart-column" key={d.key} title={`${d.full}: ${d.value} ${unit}`}>
+            <span className="chart-row-label">{d.full}</span>
             {/* No mark at all for an empty bucket: the fill has a minimum
                 height so a count of 1 stays visible, and drawing that sliver
                 for a zero would read as a small value rather than none */}
             <div className="chart-column-track">
               {d.value > 0 && (
-                <div
-                  className="chart-column-fill"
-                  style={{height: `${(d.value / max) * 100}%`}}
-                >
+                <div className="chart-column-fill" style={{"--fill": `${(d.value / max) * 100}%`}}>
                   <span className="chart-column-value">{d.value}</span>
                 </div>
               )}
@@ -187,22 +217,10 @@ function Columns({data, caption, unit = "scatti"}) {
             <span className={`chart-column-label${d.major ? " major" : ""}`}>
               {d.label}
             </span>
+            <span className="chart-row-value">{d.value}</span>
           </div>
         ))}
       </div>
-      <details className="chart-table">
-        <summary>Vedi i dati</summary>
-        <table>
-          <tbody>
-            {data.map((d) => (
-              <tr key={d.key}>
-                <th scope="row">{d.full}</th>
-                <td>{d.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
     </figure>
   );
 }
@@ -236,6 +254,83 @@ function Bars({data, caption}) {
   );
 }
 
+// Italy drawn once as a faint outline of all twenty regions, with the ones a
+// photo comes from filled in and shaded by how many. The paths share a single
+// national projection (src/regions.mjs), so a region sits exactly on top of
+// its own outline in the backdrop.
+function RegionMap({regions, elsewhere, total, caption}) {
+  const max = Math.max(...regions.map((region) => region.value), 1);
+  const places = [...regions, ...elsewhere];
+  const single = places.length === 1 ? places[0] : undefined;
+
+  return (
+    <figure className="chart">
+      <figcaption className="chart-caption">{caption}</figcaption>
+      <div className="region-chart">
+        <svg
+          className="region-map"
+          viewBox={MAP_VIEWBOX}
+          role="img"
+          aria-label={`Mappa d'Italia con evidenziate le regioni degli scatti: ${regions
+            .map((region) => `${region.name}, ${region.value}`)
+            .join("; ")}`}
+        >
+          <path className="region-map-country" d={ITALY_PATH}/>
+          {regions.map((region) => (
+            <path
+              key={region.name}
+              className="region-map-active"
+              d={REGION_PATHS[region.name]}
+              /* Never below 0.4: a region with a single shot still has to read
+                 as filled rather than as part of the backdrop */
+              style={{opacity: 0.4 + 0.6 * (region.value / max)}}
+            />
+          ))}
+        </svg>
+        {/* One place only: a bar chart of a single bar at full width says
+            nothing the number does not, so the map gets a caption instead */}
+        {single ? (
+          <p className="region-single">
+            <b>{single.name}</b>
+            <span>
+              {single.value === photos.length
+                ? `tutti i ${photos.length} scatti in galleria`
+                : `${single.value} scatti su ${photos.length}`}
+            </span>
+          </p>
+        ) : (
+          <ul className="region-list">
+            {regions.map((region) => (
+              <li key={region.name}>
+                <span className="region-list-name">{region.name}</span>
+                <span className="chart-bar-track">
+                  <span
+                    className="chart-bar-fill"
+                    style={{width: `${(region.value / max) * 100}%`}}
+                  />
+                </span>
+                <span className="chart-bar-value">{region.value}</span>
+              </li>
+            ))}
+            {elsewhere.map((place) => (
+              <li key={place.name} className="region-list-other">
+                <span className="region-list-name">{place.name}</span>
+                <span className="chart-bar-track"/>
+                <span className="chart-bar-value">{place.value}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {total < photos.length && (
+        <p className="region-note">
+          {`Zona indicata su ${total} scatti su ${photos.length}.`}
+        </p>
+      )}
+    </figure>
+  );
+}
+
 function Tile({label, value, sub}) {
   return (
     <div className="stat-tile">
@@ -253,6 +348,7 @@ export default function Stats() {
   const species = useMemo(photosPerSpecies, []);
   const hours = useMemo(photosPerHour, []);
   const isos = useMemo(photosPerIso, []);
+  const places = useMemo(photosPerRegion, []);
   const {cameras, lenses} = useMemo(gear, []);
   const focal = useMemo(() => dominant((exif) => exif.focalLength), []);
   const aperture = useMemo(() => dominant((exif) => exif.fNumber), []);
@@ -303,6 +399,17 @@ export default function Stats() {
 
       <Bars data={species} caption="Specie più fotografate — tocca una barra per vedere gli scatti"/>
 
+      {places.total > 0 && (
+        <RegionMap
+          {...places}
+          caption={
+            places.regions.length === 1 && places.elsewhere.length === 0
+              ? `Dove scatto — tutto in ${places.regions[0].name}`
+              : `Dove scatto — ${places.regions.length + places.elsewhere.length} zone`
+          }
+        />
+      )}
+
       <Columns
         data={hours}
         caption="Ora del giorno — l'orario registrato dalla fotocamera"
@@ -329,10 +436,6 @@ export default function Stats() {
           ))}
         </tbody>
       </table>
-      <p className="stats-note">
-        I dati arrivano dai metadati EXIF delle foto, letti in fase di build. Le
-        coordinate GPS vengono invece rimosse da tutte le immagini pubblicate.
-      </p>
     </SubPage>
   );
 }

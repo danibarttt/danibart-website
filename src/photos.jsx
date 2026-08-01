@@ -49,6 +49,7 @@ export default photos.map(photo => {
     title: photo.title,
     species: photo.species,
     description: photo.description,
+    position: photo.position,
     hero: photo.hero,
     heroSmall: photo.heroSmall,
     heroLarge: photo.heroLarge,

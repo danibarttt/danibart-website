@@ -1,8 +1,12 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import staticPagesDev from './src/static-pages-dev.mjs';
+
 export default defineConfig({
-  plugins: [react()],
+  // staticPagesDev only applies to `vite` (serve): it makes the /p/ and /s/
+  // pages, a post-build step in production, work in dev too.
+  plugins: [react(), staticPagesDev()],
   base: '/',
   build: {
     // Both backdrop-filter forms must reach production: Safari ≤17 only

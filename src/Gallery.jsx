@@ -760,13 +760,11 @@ export default function Gallery() {
   };
 
   const sharePhoto = async (photo) => {
-    // The /p/<id>/ pages are static stubs with Open Graph tags (built by
-    // generate-static-pages.mjs) that bounce back into the app, so shared
-    // links unfurl with the photo on WhatsApp & co. They only exist in the
-    // built site, so in dev hand out the SPA deep link instead.
-    const url = import.meta.env.DEV
-      ? `${window.location.origin}/#/?photo=${photo.id}`
-      : `${window.location.origin}/p/${photo.id}/`;
+    // The /p/<id>/ page is the photo's own page, with Open Graph tags, so a
+    // shared link unfurls with the photo on WhatsApp & co. It is built by
+    // generate-static-pages.mjs — in dev the static-pages-dev plugin serves
+    // the same page off the dev server, so there is one URL everywhere.
+    const url = `${window.location.origin}/p/${photo.id}/`;
     if (navigator.share) {
       try {
         await navigator.share({title: photo.title, url});
@@ -784,14 +782,8 @@ export default function Gallery() {
   };
 
   // The HQ button lands on the photo's own /p/ page, which shows the shot at
-  // full resolution. Those pages exist only in the built site, so in dev —
-  // where they 404 — it falls back to opening the quality-100 rendition, the
-  // behaviour the button used to have everywhere.
+  // full resolution (in dev too — see the static-pages-dev plugin)
   const openHighDefinition = (photo) => {
-    if (import.meta.env.DEV) {
-      window.open(photo.original ?? photo.src, "_blank", "noopener");
-      return;
-    }
     window.location.href = `/p/${photo.id}/`;
   };
 

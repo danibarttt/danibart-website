@@ -3,194 +3,226 @@
     "filename": "IMG_0802",
     "title": "Garzetta e Ibis Sacro",
     "species": "Egretta garzetta · Threskiornis aethiopicus",
-    "description": "Quattro sagome tra le spighe di riso: gli ibis col becco giù a rovistare, la garzetta impettita a fare da sentinella. Mi ha ricordato la foto dei Beatles ad Abbey Road."
+    "description": "Quattro sagome tra le spighe di riso: gli ibis col becco giù a rovistare, la garzetta impettita a fare da sentinella. Mi ha ricordato la foto dei Beatles ad Abbey Road.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_0189",
     "title": "Cormorano",
     "species": "Phalacrocorax carbo",
     "description": "Il cormorano si asciuga le ali al sole come se avesse tutto il tempo del mondo, mentre due guardabuoi sfrecciano sullo sfondo.",
+    "position": "Lombardia",
     "heroLarge": true
   },
   {
     "filename": "IMG_7872",
     "title": "Gruccione",
     "species": "Merops apiaster",
-    "description": "Un gruccione che sfreccia nel cielo rosa del tramonto, acceso come una brace volante. Un attimo dopo era già sparito tra i rami."
+    "description": "Un gruccione che sfreccia nel cielo rosa del tramonto, acceso come una brace volante. Un attimo dopo era già sparito tra i rami.",
+    "position": "Toscana"
   },
   {
     "filename": "IMG_7817",
     "title": "Piro Piro Piccolo",
     "species": "Actitis hypoleucos",
-    "description": "Piccolo, discreto, con lo sguardo fisso sull'acqua color rame: il piro piro piccolo si ferma su un tronco pieno di cirripedi."
+    "description": "Piccolo, discreto, con lo sguardo fisso sull'acqua color rame: il piro piro piccolo si ferma su un tronco pieno di cirripedi.",
+    "position": "Toscana"
   },
   {
     "filename": "IMG_7734",
     "title": "Garzette",
     "species": "Egretta garzetta",
-    "description": "Quattro garzette in fila indiana, ali illuminate dal controluce come se stessero sfilando in passerella sopra gli alberi."
+    "description": "Quattro garzette in fila indiana, ali illuminate dal controluce come se stessero sfilando in passerella sopra gli alberi.",
+    "position": "Toscana"
   },
   {
     "filename": "IMG_7662",
     "title": "Tortore Selvatiche",
     "species": "Streptopelia turtur",
-    "description": "Due tortore appollaiate sulla stessa punta di ramo secco, strette strette nella luce dorata della sera."
+    "description": "Due tortore appollaiate sulla stessa punta di ramo secco, strette strette nella luce dorata della sera.",
+    "position": "Toscana"
   },
   {
     "filename": "IMG_6854",
     "title": "Cicogna",
     "species": "Ciconia ciconia",
-    "description": "La cicogna sistema il nido con la cura di chi ha appena traslocato e vuole tutto al posto giusto, mentre il cielo grigio fa da sfondo un po' cupo."
+    "description": "La cicogna sistema il nido con la cura di chi ha appena traslocato e vuole tutto al posto giusto, mentre il cielo grigio fa da sfondo un po' cupo.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_6501",
     "title": "Garzetta",
     "species": "Egretta garzetta",
     "description": "La garzetta illuminata nel buio dello stagno, sospesa tra il suo riflesso e il silenzio della risaia.",
+    "position": "Lombardia",
     "hero": true
   },
   {
     "filename": "IMG_6354",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
-    "description": "Airone cenerino in perfetta planata radente sull'acqua, con quel muro scrostato alle spalle che gli dà un'aria vagamente urbana."
+    "description": "Airone cenerino in perfetta planata radente sull'acqua, con quel muro scrostato alle spalle che gli dà un'aria vagamente urbana.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_6229",
     "title": "Airone Bianco Maggiore",
     "species": "Ardea alba",
-    "description": "Un airone bianco maggiore vola basso nella foschia della sera, becco aperto come se stesse commentando qualcosa col vicino di volo."
+    "description": "Un airone bianco maggiore vola basso nella foschia della sera, becco aperto come se stesse commentando qualcosa col vicino di volo.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_6197",
     "title": "Oca Selvatica",
     "species": "Anser anser",
-    "description": "L'oca selvatica sfreccia bassa su un campo di stoppie, becco arancione acceso come un semaforo in mezzo a tutto quel marrone."
+    "description": "L'oca selvatica sfreccia bassa su un campo di stoppie, becco arancione acceso come un semaforo in mezzo a tutto quel marrone.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5893",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
-    "description": "Solo una sagoma nera contro un cielo che vira dall'oro al viola."
+    "description": "Solo una sagoma nera contro un cielo che vira dall'oro al viola.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5849",
     "title": "Parrocchetti",
     "species": "Psittacula krameri",
-    "description": "Due parrocchetti dai colori improbabili, uno giallo canarino e uno più discreto, intenti a spulciare le foglie secche come fosse un buffet."
+    "description": "Due parrocchetti dai colori improbabili, uno giallo canarino e uno più discreto, intenti a spulciare le foglie secche come fosse un buffet.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5778",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
-    "description": "L'airone cenerino rade il campo mietuto a bassa quota, con un collega distante sullo sfondo che osserva la scena senza intromettersi."
+    "description": "L'airone cenerino rade il campo mietuto a bassa quota, con un collega distante sullo sfondo che osserva la scena senza intromettersi.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5776",
     "title": "Airone Bianco Maggiore",
     "species": "Ardea alba",
-    "description": "Airone bianco maggiore in volo tra i rami spogli, becco spalancato: sembra stia urlando alla giornata di svegliarsi."
+    "description": "Airone bianco maggiore in volo tra i rami spogli, becco spalancato: sembra stia urlando alla giornata di svegliarsi.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5703",
     "title": "Cormorano",
     "species": "Phalacrocorax carbo",
-    "description": "atterraggio maldestro del cormorano, spruzzi ovunque, mentre sullo sfondo un airone bianco osserva impassibile la scena come se fosse tutto normale."
+    "description": "atterraggio maldestro del cormorano, spruzzi ovunque, mentre sullo sfondo un airone bianco osserva impassibile la scena come se fosse tutto normale.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5754",
     "title": "Airone Bianco Maggiore",
     "species": "Ardea alba",
-    "description": "Un airone bianco maggiore sbuca tra i rami scuri, la nebbia padana rende questa foto quasi simile ad un quadro ad olio"
+    "description": "Un airone bianco maggiore sbuca tra i rami scuri, la nebbia padana rende questa foto quasi simile ad un quadro ad olio",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5470",
     "title": "Cicogne",
     "species": "Ciconia ciconia",
-    "description": "Un gruppo di cicogne riunite sul greto del fiume, tra tronchi portati dalla corrente. Sono rimasto a osservarle a lungo: ognuna sul suo posatoio, immobili nella luce del mattino."
+    "description": "Un gruppo di cicogne riunite sul greto del fiume, tra tronchi portati dalla corrente. Sono rimasto a osservarle a lungo: ognuna sul suo posatoio, immobili nella luce del mattino.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5321",
     "title": "Aironi Bianchi Maggiori",
     "species": "Ardea alba",
-    "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali."
+    "description": "Due aironi bianchi maggiori si alzano in volo da una risaia appena mietuta, in una mattina di foschia. Le ali aperte quasi si sovrappongono: sembrano un unico uccello a quattro ali.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5319",
     "title": "Cenerino e Ibis Sacro",
     "species": "Ardea cinerea · Threskiornis aethiopicus",
-    "description": "Un piccolo raduno informale su un dosso della risaia: l'airone cenerino fa da capofila e un gruppetto di ibis sacri lo segue in fila sparsa, tra nebbiolina e controluce."
+    "description": "Un piccolo raduno informale su un dosso della risaia: l'airone cenerino fa da capofila e un gruppetto di ibis sacri lo segue in fila sparsa, tra nebbiolina e controluce.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_5284",
     "title": "Airone Bianco Maggiore",
     "species": "Ardea alba",
-    "description": "L'airone bianco maggiore in posa da soprammobile su un argine erboso, immobile e fiero come se sapesse di essere fotogenico."
+    "description": "L'airone bianco maggiore in posa da soprammobile su un argine erboso, immobile e fiero come se sapesse di essere fotogenico.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_4966",
     "title": "Aironi Guardabuoi",
     "species": "Bubulcus ibis",
-    "description": "Un albero intero requisito dagli aironi guardabuoi per la notte, decine di puntini bianchi appollaiati ovunque: il condominio più affollato della zona."
+    "description": "Un albero intero requisito dagli aironi guardabuoi per la notte, decine di puntini bianchi appollaiati ovunque: il condominio più affollato della zona.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_4344",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
-    "description": "Atterraggio dell'airone cenerino, zampe a penzoloni e ali spalancate contro un cielo azzurro senza una nuvola."
+    "description": "Atterraggio dell'airone cenerino, zampe a penzoloni e ali spalancate contro un cielo azzurro senza una nuvola.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_4480",
     "title": "Gallinella d'acqua",
     "species": "Gallinula chloropus",
-    "description": "La gallinella d'acqua cammina in equilibrio su un tronco sommerso dalle lenticchie d'acqua, con quel piede sollevato a mezz'aria che sembra un passo di danza."
+    "description": "La gallinella d'acqua cammina in equilibrio su un tronco sommerso dalle lenticchie d'acqua, con quel piede sollevato a mezz'aria che sembra un passo di danza.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_4188",
     "title": "Airone Cenerino",
     "species": "Ardea cinerea",
-    "description": "Airone cenerino diritto come un fuso su un ammasso di rami, sguardo fisso e posa da guardiano del canale."
+    "description": "Airone cenerino diritto come un fuso su un ammasso di rami, sguardo fisso e posa da guardiano del canale.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_4100",
     "title": "Giovane Airone Rosso",
     "species": "Ardea purpurea",
-    "description": "Un giovane airone rosso in equilibrio precario sulla cima di un cespuglio, come se avesse scelto apposta il posto più scomodo per farsi notare."
+    "description": "Un giovane airone rosso in equilibrio precario sulla cima di un cespuglio, come se avesse scelto apposta il posto più scomodo per farsi notare.",
+    "position": "Veneto"
   },
   {
     "filename": "IMG_4044",
     "title": "Gruccione",
     "species": "Merops apiaster",
-    "description": "Il gruccione ha appena agguantato la colazione al volo, letteralmente: una vespa stretto nel becco e l'aria soddisfatta di chi ce l'ha fatta."
+    "description": "Il gruccione ha appena agguantato la colazione al volo, letteralmente: una vespa stretto nel becco e l'aria soddisfatta di chi ce l'ha fatta.",
+    "position": "Veneto"
   },
   {
     "filename": "IMG_3943",
     "title": "Nitticora",
     "species": "Nycticorax nycticorax",
-    "description": "La nitticora se ne sta appollaiata tra i rami in pieno giorno, da notare l'occhio rossissimo."
+    "description": "La nitticora se ne sta appollaiata tra i rami in pieno giorno, da notare l'occhio rossissimo.",
+    "position": "Veneto"
   },
   {
     "filename": "IMG_3817",
     "title": "Airone Rosso",
     "species": "Ardea purpurea",
-    "description": "Airone rosso in volo con le ali aperte contro un cielo azzurro striato di rosa, elegante e colorato."
+    "description": "Airone rosso in volo con le ali aperte contro un cielo azzurro striato di rosa, elegante e colorato.",
+    "position": "Veneto"
   },
   {
     "filename": "IMG_3807",
     "title": "Airone Rosso",
     "species": "Ardea purpurea",
-    "description": "Mimetizzato tra i rami e il verde della sponda, l'airone rosso spunta col collo teso: se non guardavo bene, non lo beccavo nemmeno."
+    "description": "Mimetizzato tra i rami e il verde della sponda, l'airone rosso spunta col collo teso: se non guardavo bene, non lo beccavo nemmeno.",
+    "position": "Veneto"
   },
   {
     "filename": "IMG_3292",
     "title": "Guardabuoi e Garzetta",
     "species": "Bubulcus ibis · Egretta garzetta",
-    "description": "Un guardabuoi e una garzetta che sembrano non rivolgersi nemmeno lo sguardo."
+    "description": "Un guardabuoi e una garzetta che sembrano non rivolgersi nemmeno lo sguardo.",
+    "position": "Lombardia"
   },
   {
     "filename": "IMG_2990",
     "title": "Aironi Cenerini",
     "species": "Ardea cinerea",
-    "description": "Due aironi cenerini si contendono lo stesso angolo di stagno verde, ali spalancate come in una discussione condominiale mai troppo seria."
+    "description": "Due aironi cenerini si contendono lo stesso angolo di stagno verde, ali spalancate come in una discussione condominiale mai troppo seria.",
+    "position": "Lombardia"
   }
 ]

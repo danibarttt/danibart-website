@@ -13,11 +13,22 @@
 // link. They are real pages now: a redirect is not indexable, and the static
 // page paints the photo without waiting for the JS bundle. Each one links
 // into the gallery for the full experience.
+//
+// With STATIC_PAGES_DEV=1 the same script runs against the dev server instead
+// (see src/static-pages-dev.mjs, the plugin that calls it): the pages go to
+// .dev-static/ and point at the unhashed files in generated_photos/, which
+// vite serves straight from the project root. Everything that only makes
+// sense for a real build — the sitemap, the tags injected into dist/index.html
+// and the analytics tag — is skipped. This exists so /p/<id>/ can be opened
+// and edited in dev instead of only after a build.
 import fs from "fs";
 import path from "path";
 
 import { photoId } from "./photo-id.mjs";
+import { findRegion, ITALY_PATH, MAP_VIEWBOX, REGION_PATHS } from "./regions.mjs";
 import { collectSpecies, commonName, speciesSlug, splitSpecies } from "./species.mjs";
+
+const DEV = process.env.STATIC_PAGES_DEV === "1";
 
 const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), "photos.json"), "utf8"));
 const metadata = JSON.parse(
@@ -34,7 +45,15 @@ const distDir = path.join(process.cwd(), "dist");
 const assetsDir = path.join(distDir, "assets");
 const socialInputDir = path.join(process.cwd(), "generated_photos/social");
 
-if (!fs.existsSync(distDir)) {
+// Where the pages land: dist/ for a build, a throwaway directory the dev
+// server reads from otherwise. The dev one is wiped first so a renamed or
+// deleted photo cannot leave a page behind that keeps answering.
+const outDir = DEV ? path.join(process.cwd(), ".dev-static") : distDir;
+
+if (DEV) {
+  fs.rmSync(outDir, { recursive: true, force: true });
+  fs.mkdirSync(outDir, { recursive: true });
+} else if (!fs.existsSync(distDir)) {
   console.error("ERROR: dist/ not found — run vite build first");
   process.exit(1);
 }
@@ -85,6 +104,43 @@ const exifRows = photo => {
   ].filter(Boolean);
 };
 
+/* ---------- where the photo was taken ---------- */
+
+// The manifest's "position" field, shown as a card with a small map of Italy:
+// the whole country in faint outlines, the region the photo was taken in
+// filled with the accent. Inline SVG rather than a file — it costs no request
+// and, being markup, it follows the theme tokens like everything else. The
+// paths live in src/regions.mjs.
+const PIN_ICON = `<svg class="place-pin" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21.5c4.5-5.2 6.8-8.8 6.8-11.5a6.8 6.8 0 1 0-13.6 0c0 2.7 2.3 6.3 6.8 11.5z"/><circle cx="12" cy="10" r="2.6"/></svg>`;
+
+const regionMap = region =>
+  `<svg class="place-map" viewBox="${MAP_VIEWBOX}" width="62" height="73" role="img" aria-label="${escapeHtml(
+    region
+  )} evidenziata sulla mappa d'Italia"><path class="place-italy" d="${ITALY_PATH}" /><path class="place-region" d="${
+    REGION_PATHS[region]
+  }" /></svg>`;
+
+// A position naming no Italian region (a foreign trip, or just something the
+// lookup does not know) still gets a card — with a pin instead of a map.
+const placeCard = photo => {
+  const position = photo.position?.trim();
+  if (!position) return "";
+  const region = findRegion(position);
+  // Foreign places land here legitimately, but so does a typo in an Italian
+  // region — and the only visible difference is a pin instead of the map
+  if (!region) {
+    console.warn(`WARNING: position "${position}" (${photo.filename}) matches no Italian region`);
+  }
+  return `<figure class="place">
+          ${region ? regionMap(region) : PIN_ICON}
+          <figcaption>
+            <span class="place-label">Scattata in</span>
+            <b>${escapeHtml(position)}</b>
+            ${region ? `<span class="place-country">Italia</span>` : ""}
+          </figcaption>
+        </figure>`;
+};
+
 /* ---------- hashed asset lookup ---------- */
 
 // vite flattens every imported photo into dist/assets/<basename>-<hash>.<ext>,
@@ -108,6 +164,9 @@ const assetSizes = new Map(
 const assetFor = relPath => {
   const source = path.join(generatedRoot, relPath);
   if (!fs.existsSync(source)) return undefined;
+  // In dev there is no bundle and nothing is hashed: vite serves any file
+  // under the project root at its own path, so the source is also the URL.
+  if (DEV) return `/generated_photos/${relPath}`;
   const size = fs.statSync(source).size;
   const ext = path.extname(relPath);
   const stem = path.basename(relPath, ext);
@@ -135,6 +194,11 @@ const fullSizeUrl = photo => assetFor(`fullsize/${photo.filename}.jpg`);
 // — the gallery has five "Airone Cenerino".
 const socialName = photo => `${photoId(photo).toLowerCase()}.jpg`;
 const socialUrl = photo => `${SITE}/social/${socialName(photo)}`;
+// Same file as a path on this site, for the <img> fallbacks below. In dev
+// nothing is copied into the output directory, so it points at the generated
+// file vite already serves.
+const socialPath = photo =>
+  DEV ? `/generated_photos/social/${photo.filename}.jpg` : `/social/${socialName(photo)}`;
 
 // <picture> for a gallery-sized thumbnail, preferring avif then webp — the
 // same ladder the app uses, so a visitor arriving from a shared link and then
@@ -142,7 +206,7 @@ const socialUrl = photo => `${SITE}/social/${socialName(photo)}`;
 const thumbPicture = photo => {
   const avif = thumbUrl(photo, ".avif");
   const webp = thumbUrl(photo, ".webp");
-  const jpg = thumbUrl(photo, ".jpg") ?? `/social/${photo.filename}.jpg`;
+  const jpg = thumbUrl(photo, ".jpg") ?? socialPath(photo);
   return `<picture>${avif ? `<source srcset="${avif}" type="image/avif">` : ""}${
     webp ? `<source srcset="${webp}" type="image/webp">` : ""
   }<img src="${jpg}" alt="${escapeHtml(altOf(photo))}" loading="lazy" decoding="async"></picture>`;
@@ -162,13 +226,21 @@ const PAGE_CSS = `
 :root[data-theme="light"]{--bg-rgb:246 244 239;--surface-rgb:234 230 221;--text-rgb:26 28 25;--muted-rgb:106 102 94;--accent-rgb:122 92 34;color-scheme:light}
 @media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg-rgb:246 244 239;--surface-rgb:234 230 221;--text-rgb:26 28 25;--muted-rgb:106 102 94;--accent-rgb:122 92 34;color-scheme:light}}
 *{box-sizing:border-box}
+/* Same as src/index.css: the default mobile tap flash is blue and belongs to
+   no theme here. It is inherited, so one declaration covers every link and
+   button on the page — except the round toggle, whose flash would be painted
+   as a square regardless of its radius, so it opts out and gets the tint back
+   as an :active background instead. */
+html{-webkit-tap-highlight-color:rgb(var(--accent-rgb) / .15)}
+.theme-toggle{-webkit-tap-highlight-color:transparent}
+.theme-toggle:active{background:rgb(var(--accent-rgb) / .15)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 img{max-width:100%;height:auto;display:block}
 .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 64px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:34px}
 .brand{font-family:var(--serif);font-size:22px;letter-spacing:.02em;text-decoration:none}
-.top nav{display:flex;gap:20px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.top nav{display:flex;align-items:center;gap:20px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .top nav a{text-decoration:none}
 .top nav a:hover{color:var(--accent)}
 .overline{font-size:12px;font-weight:500;letter-spacing:.35em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
@@ -191,9 +263,24 @@ h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4.5vw,46px);lin
 .lede{font-size:18px;max-width:62ch;margin:0 0 28px;color:var(--text)}
 .cta{display:inline-block;border:1px solid var(--accent);color:var(--accent);text-decoration:none;padding:11px 22px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;border-radius:2px}
 .cta:hover{background:var(--accent);color:var(--bg)}
-.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px 24px;border-top:1px solid rgb(var(--text-rgb) / .12);margin:34px 0 0;padding-top:22px}
+/* Shooting data on the left, the place card on the right; they stack once the
+   pair no longer fits, and either half may be missing (a photo with no EXIF,
+   or none with no position) without leaving a stray rule or gap */
+.details{display:flex;flex-wrap:wrap;align-items:flex-start;gap:24px 32px;border-top:1px solid rgb(var(--text-rgb) / .12);margin-top:34px;padding-top:22px}
+.facts{flex:1 1 340px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px 24px;margin:0}
 .facts dt{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .facts dd{margin:2px 0 0;font-size:15px}
+.place{flex:none;display:flex;align-items:center;gap:18px;margin:0;padding:14px 22px 14px 18px;background:var(--surface);border-radius:8px}
+.place figcaption{min-width:0}
+.place-label{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.place b{display:block;font-family:var(--serif);font-weight:500;font-size:24px;line-height:1.2;margin-top:2px}
+.place .place-country{display:block;font-size:13px;color:var(--muted);line-height:1.4}
+.place-pin{flex:none;color:var(--accent)}
+/* The country is one path holding all twenty outlines, so the region drawn
+   over it lines up exactly — same projection, same coordinates */
+.place-map{flex:none}
+.place-italy{fill:none;stroke:rgb(var(--text-rgb) / .3);stroke-width:.45;stroke-linejoin:round}
+.place-region{fill:rgb(var(--accent-rgb) / .85);stroke:var(--accent);stroke-width:.9;stroke-linejoin:round}
 .pager{display:flex;justify-content:space-between;gap:18px;margin-top:44px;border-top:1px solid rgb(var(--text-rgb) / .12);padding-top:22px}
 .pager a{display:flex;gap:12px;align-items:center;text-decoration:none;max-width:48%;color:var(--muted)}
 .pager a:hover{color:var(--text)}
@@ -224,13 +311,22 @@ footer a{color:var(--muted)}
 :root[data-theme="light"] .theme-toggle .moon{display:block}
 :root[data-theme="light"] .theme-toggle .sun{display:none}
 @media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .theme-toggle .moon{display:block}:root:not([data-theme="dark"]) .theme-toggle .sun{display:none}}
-@media(max-width:600px){.pager picture{display:none}.pager a{max-width:46%}}
+/* The nav wraps under the brand on narrow screens, and the flex gap doubles as
+   the row gap — 16px left the links sitting on top of the name */
+@media(max-width:600px){.pager picture{display:none}.pager a{max-width:46%}.top{gap:22px 16px}}
 `.trim();
 
 const SUN_ICON = `<svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg>`;
 const MOON_ICON = `<svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>`;
 
-const NAV = `<nav><a href="/">Galleria</a><a href="/s/">Specie</a><a href="/#/numeri">Numeri</a><button class="theme-toggle" type="button" aria-label="Cambia tema">${SUN_ICON}${MOON_ICON}</button></nav>`;
+const THEME_TOGGLE = `<button class="theme-toggle" type="button" aria-label="Cambia tema">${SUN_ICON}${MOON_ICON}</button>`;
+
+// The photo pages leave the toggle out: they are the landing page for a shared
+// link, and the photo is the only thing that should be competing for attention
+// there. THEME_SCRIPT is a no-op without the button, and the theme itself still
+// follows the stored preference (or the device) via THEME_BOOT.
+const nav = ({ themeToggle = true } = {}) =>
+  `<nav><a href="/">Galleria</a><a href="/s/">Specie</a><a href="/#/numeri">Numeri</a>${themeToggle ? THEME_TOGGLE : ""}</nav>`;
 
 // Mirrors src/theme.mjs, inlined because these pages load no bundle. The first
 // half runs before the stylesheet so an overridden theme never flashes; the
@@ -267,12 +363,24 @@ const THEME_SCRIPT = `<script>
 })();
 </script>`;
 
+// Left out in dev: local page views are not real ones
+const ANALYTICS = DEV
+  ? ""
+  : `<script defer src="https://cloud.umami.is/script.js" data-website-id="3d4db7b2-32dd-4afa-82dc-3eb0efbe84d0"></script>`;
+
 const FOOTER = `<footer>
         <p>© ${new Date().getFullYear()} Daniele Bartorilla. Tutti i diritti sul sito, relativi contenuti e foto sono riservati.</p>
         <p><a href="/">Galleria</a> · <a href="/s/">Specie</a> · <a href="/#/privacy">Privacy Policy</a> · <a href="/#/cookie">Cookie Policy</a></p>
       </footer>`;
 
-const layout = ({ title, description, canonical, head = "", body }) => `<!DOCTYPE html>
+const layout = ({
+  title,
+  description,
+  canonical,
+  head = "",
+  body,
+  themeToggle = true,
+}) => `<!DOCTYPE html>
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
@@ -290,13 +398,13 @@ const layout = ({ title, description, canonical, head = "", body }) => `<!DOCTYP
     <meta property="og:locale" content="it_IT" />
     <meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
 ${head}    <style>${PAGE_CSS}</style>
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="3d4db7b2-32dd-4afa-82dc-3eb0efbe84d0"></script>
+    ${ANALYTICS}
   </head>
   <body>
     <div class="wrap">
       <div class="top">
         <a class="brand" href="/">Daniele Bartorilla</a>
-        ${NAV}
+        ${nav({ themeToggle })}
       </div>
 ${body}
 ${FOOTER}
@@ -378,13 +486,16 @@ function buildPageTitles() {
 
 const pageTitles = buildPageTitles();
 
-const socialOutDir = path.join(distDir, "social");
-fs.mkdirSync(socialOutDir, { recursive: true });
-for (const photo of manifest) {
-  fs.copyFileSync(
-    path.join(socialInputDir, `${photo.filename}.jpg`),
-    path.join(socialOutDir, socialName(photo))
-  );
+// Only for a build: in dev the pages point straight at generated_photos/
+if (!DEV) {
+  const socialOutDir = path.join(outDir, "social");
+  fs.mkdirSync(socialOutDir, { recursive: true });
+  for (const photo of manifest) {
+    fs.copyFileSync(
+      path.join(socialInputDir, `${photo.filename}.jpg`),
+      path.join(socialOutDir, socialName(photo))
+    );
+  }
 }
 
 for (const [index, photo] of manifest.entries()) {
@@ -425,6 +536,11 @@ for (const [index, photo] of manifest.entries()) {
   // Images results; the BreadcrumbList alongside it turns the URL line of the
   // search result into "danibart.it › Specie › Airone cenerino".
   const primarySpecies = speciesOf(photo)[0];
+  // Only the region is stated as structured data, never a precise spot: these
+  // are wild birds, and a nesting site is not something to publish coordinates
+  // for (it is also why generate-photos.js re-encodes every rendition to strip
+  // the GPS tags out of the EXIF).
+  const region = findRegion(photo.position);
   const photoLd = jsonLd({
     "@context": "https://schema.org",
     "@graph": [
@@ -437,6 +553,19 @@ for (const [index, photo] of manifest.entries()) {
         inLanguage: "it",
         ...(m.dateTaken ? { dateCreated: m.dateTaken } : {}),
         ...(m.width ? { width: m.width, height: m.height } : {}),
+        ...(region
+          ? {
+              contentLocation: {
+                "@type": "Place",
+                name: region,
+                address: {
+                  "@type": "PostalAddress",
+                  addressRegion: region,
+                  addressCountry: "IT",
+                },
+              },
+            }
+          : {}),
         creator: AUTHOR,
         creditText: "Daniele Bartorilla",
         copyrightNotice: "© Daniele Bartorilla",
@@ -470,7 +599,9 @@ for (const [index, photo] of manifest.entries()) {
 
   const facts = exifRows(photo)
     .map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`)
-    .join("\n          ");
+    .join("\n            ");
+
+  const place = placeCard(photo);
 
   const speciesLinks = speciesOf(photo)
     .map(
@@ -499,7 +630,7 @@ for (const [index, photo] of manifest.entries()) {
               ).toFixed(4)})`
             : ""
         }">
-          <img src="${full ?? wide ?? `/social/${socialName(photo)}`}"${
+          <img src="${full ?? wide ?? socialPath(photo)}"${
             srcset ? ` srcset="${srcset}"` : ""
           } sizes="100vw" alt="${escapeHtml(altOf(photo))}"${
             m.width ? ` width="${m.width}" height="${m.height}"` : ""
@@ -507,11 +638,18 @@ for (const [index, photo] of manifest.entries()) {
         </div>
         ${photo.description ? `<p class="lede">${escapeHtml(photo.description)}</p>` : ""}
         <a class="cta" href="/#/?photo=${id}">Apri nella galleria</a>
-        ${facts ? `<dl class="facts">\n          ${facts}\n        </dl>` : ""}
+        ${
+          facts || place
+            ? `<div class="details">
+          ${facts ? `<dl class="facts">\n            ${facts}\n          </dl>` : ""}
+          ${place}
+        </div>`
+            : ""
+        }
       </article>
       <div class="pager">
-        ${pagerLink(prev, "prev", "Scatto più recente")}
-        ${pagerLink(next, "next", "Scatto precedente")}
+        ${pagerLink(prev, "prev", "Foto precedente")}
+        ${pagerLink(next, "next", "Foto successiva")}
       </div>`;
 
   const head = `    <meta property="og:type" content="article" />
@@ -524,11 +662,18 @@ ${imageSize}    <meta property="og:image:alt" content="${escapeHtml(altOf(photo)
     <script type="application/ld+json">${photoLd}</script>
 `;
 
-  const pageDir = path.join(distDir, "p", id);
+  const pageDir = path.join(outDir, "p", id);
   fs.mkdirSync(pageDir, { recursive: true });
   fs.writeFileSync(
     path.join(pageDir, "index.html"),
-    layout({ title, description, canonical: pageUrl, head, body })
+    layout({
+      title,
+      description,
+      canonical: pageUrl,
+      head,
+      body,
+      themeToggle: false,
+    })
   );
 }
 console.log(`Photo pages created: ${manifest.length}`);
@@ -621,7 +766,7 @@ ${items}
     <script type="application/ld+json">${collectionLd}</script>
 `;
 
-  const pageDir = path.join(distDir, "s", slug);
+  const pageDir = path.join(outDir, "s", slug);
   fs.mkdirSync(pageDir, { recursive: true });
   fs.writeFileSync(
     path.join(pageDir, "index.html"),
@@ -645,9 +790,9 @@ ${speciesList
   .join("\n")}
       </ul>`;
 
-fs.mkdirSync(path.join(distDir, "s"), { recursive: true });
+fs.mkdirSync(path.join(outDir, "s"), { recursive: true });
 fs.writeFileSync(
-  path.join(distDir, "s", "index.html"),
+  path.join(outDir, "s", "index.html"),
   layout({
     title: `Specie fotografate — ${SITE_NAME}`,
     description: `Le ${speciesList.length} specie di uccelli presenti nella galleria di Daniele Bartorilla, con tutte le foto di ciascuna.`,
@@ -660,6 +805,13 @@ fs.writeFileSync(
   })
 );
 console.log(`Species pages created: ${speciesList.length} (+ index)`);
+
+// Everything below belongs to a build and to nothing else: the dev server has
+// no dist/index.html to inject tags into (it serves the root index.html
+// through vite) and no crawler to hand a sitemap to. Bailing out here rather
+// than wrapping the rest keeps the templates below at their current
+// indentation — the whitespace inside them is output.
+if (DEV) process.exit(0);
 
 /* ---------- site-wide tags on the SPA entry page ---------- */
 
