@@ -1,0 +1,2364 @@
+.yarl__fullsize{width:100%;height:100%}.yarl__relative{position:relative}.yarl__portal{position:fixed;top:0;right:0;bottom:0;left:0;opacity:0;overflow:hidden;z-index:var(--yarl__portal_zindex,9999);transition:opacity var(--yarl__fade_animation_duration,.25s) var(--yarl__fade_animation_timing_function,ease);pointer-events:auto}.yarl__portal_open{opacity:1}.yarl__container{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;background-color:var(--yarl__container_background_color,var(--yarl__color_backdrop,#000));outline:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;touch-action:var(--yarl__controller_touch_action,none);overscroll-behavior:var(--yarl__controller_overscroll_behavior,contain)}.yarl__carousel{display:flex;flex:0 0 auto;height:100%;align-content:center;justify-content:center;align-items:stretch;width:calc(100% + (var(--yarl__carousel_slides_count) - 1)*(100% + var(--yarl__carousel_spacing_px, 0)*1px + var(--yarl__carousel_spacing_percent, 0)*1%));transform:translate(var(--yarl__swipe_offset,0),var(--yarl__pull_offset,0));opacity:var(--yarl__pull_opacity,1)}.yarl__carousel_with_slides{-moz-column-gap:calc(var(--yarl__carousel_spacing_px, 0)*1px + 100/(var(--yarl__carousel_slides_count)*100 + (var(--yarl__carousel_slides_count) - 1)*var(--yarl__carousel_spacing_percent, 0))*var(--yarl__carousel_spacing_percent, 0)*1%);column-gap:calc(var(--yarl__carousel_spacing_px, 0)*1px + 100/(var(--yarl__carousel_slides_count)*100 + (var(--yarl__carousel_slides_count) - 1)*var(--yarl__carousel_spacing_percent, 0))*var(--yarl__carousel_spacing_percent, 0)*1%)}.yarl__flex_center{display:flex;justify-content:center;align-content:center;align-items:center}.yarl__slide{flex:1;position:relative;overflow:hidden;padding:calc(var(--yarl__carousel_padding_px, 0)*1px + 100/(var(--yarl__carousel_slides_count)*100 + (var(--yarl__carousel_slides_count) - 1)*var(--yarl__carousel_spacing_percent, 0))*var(--yarl__carousel_padding_percent, 0)*1%)}[dir=rtl] .yarl__slide{--yarl__direction:-1}.yarl__slide_image{max-width:100%;max-height:100%;-o-object-fit:contain;object-fit:contain;touch-action:var(--yarl__controller_touch_action,none);-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none}.yarl__slide_image_cover{width:100%;height:100%;-o-object-fit:cover;object-fit:cover}.yarl__slide_image_loading{opacity:0}@media screen and (min-width:800px){.yarl__slide_wrapper:not(.yarl__slide_wrapper_interactive) .yarl__slide_image{-webkit-transform:translateZ(0);-webkit-backface-visibility:hidden;-webkit-transform-style:preserve-3d}}.yarl__slide_placeholder{position:absolute;top:50%;left:50%;transform:translateX(-50%) translateY(-50%);line-height:0}.yarl__slide_loading{color:var(--yarl__slide_icon_loading_color,var(--yarl__color_button,hsla(0,0%,100%,.8)));animation:yarl__delayed_fadein 1s linear}.yarl__slide_loading line{animation:yarl__stroke_opacity 1s linear infinite}.yarl__slide_loading line:first-of-type{animation-delay:-1.875s}.yarl__slide_loading line:nth-of-type(2){animation-delay:-1.75s}.yarl__slide_loading line:nth-of-type(3){animation-delay:-1.625s}.yarl__slide_loading line:nth-of-type(4){animation-delay:-1.5s}.yarl__slide_loading line:nth-of-type(5){animation-delay:-1.375s}.yarl__slide_loading line:nth-of-type(6){animation-delay:-1.25s}.yarl__slide_loading line:nth-of-type(7){animation-delay:-1.125s}.yarl__slide_loading line:nth-of-type(8){animation-delay:-1s}.yarl__slide_error{width:var(--yarl__slide_icon_error_size,48px);height:var(--yarl__slide_icon_error_size,48px);color:var(--yarl__slide_icon_error_color,red)}@media (prefers-reduced-motion){.yarl__portal,.yarl__slide{transition:unset}.yarl__slide_loading,.yarl__slide_loading line{animation:unset}}.yarl__toolbar{position:absolute;top:0;right:0;bottom:auto;left:auto;display:flex;justify-content:flex-end;padding:var(--yarl__toolbar_padding,8px)}[dir=rtl] .yarl__toolbar{top:0;right:auto;bottom:auto;left:0}.yarl__icon{width:var(--yarl__icon_size,32px);height:var(--yarl__icon_size,32px)}.yarl__button{cursor:pointer;-webkit-appearance:none;-moz-appearance:none;appearance:none;background-color:var(--yarl__button_background_color,transparent);border:var(--yarl__button_border,0);margin:var(--yarl__button_margin,0);outline:none;line-height:0;padding:var(--yarl__button_padding,8px);color:var(--yarl__color_button,hsla(0,0%,100%,.8));filter:var(--yarl__button_filter,drop-shadow(2px 2px 2px rgba(0,0,0,.8)));-webkit-tap-highlight-color:transparent}.yarl__button:focus{color:var(--yarl__color_button_active,#fff)}.yarl__button:focus:not(:focus-visible){color:var(--yarl__color_button,hsla(0,0%,100%,.8))}.yarl__button:focus-visible{color:var(--yarl__color_button_active,#fff)}@media (hover:hover){.yarl__button:focus-visible:hover,.yarl__button:focus:hover,.yarl__button:hover{color:var(--yarl__color_button_active,#fff)}}.yarl__button:disabled{color:var(--yarl__color_button_disabled,hsla(0,0%,100%,.4));cursor:default}.yarl__navigation_next,.yarl__navigation_prev{position:absolute;top:50%;transform:translateY(-50%);padding:var(--yarl__navigation_button_padding,24px 16px)}.yarl__navigation_prev{left:0}[dir=rtl] .yarl__navigation_prev{left:unset;right:0;transform:translateY(-50%) rotate(180deg)}.yarl__navigation_next{right:0}[dir=rtl] .yarl__navigation_next{left:0;right:unset;transform:translateY(-50%) rotate(180deg)}.yarl__no_scroll{height:100%;overflow:hidden;overscroll-behavior:none}@keyframes yarl__delayed_fadein{0%{opacity:0}80%{opacity:0}to{opacity:1}}@keyframes yarl__stroke_opacity{0%{stroke-opacity:1}to{stroke-opacity:.125}}.yarl__thumbnails{display:flex;height:100%}.yarl__thumbnails_bottom,.yarl__thumbnails_end .yarl__thumbnails_track,.yarl__thumbnails_start .yarl__thumbnails_track,.yarl__thumbnails_top{flex-direction:column}.yarl__thumbnails_wrapper{flex:1;position:relative}.yarl__thumbnails_container{flex:0 0 auto;background-color:var(--yarl__thumbnails_container_background_color,var(--yarl__color_backdrop,#000));padding:var(--yarl__thumbnails_container_padding,16px);position:relative;overflow:hidden;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none}.yarl__thumbnails_vignette{position:absolute;pointer-events:none;--yarl__thumbnails_vignette_size:12%}@media (min-width:1200px){.yarl__thumbnails_vignette{--yarl__thumbnails_vignette_size:8%}}@media (min-width:2000px){.yarl__thumbnails_vignette{--yarl__thumbnails_vignette_size:5%}}.yarl__thumbnails_bottom .yarl__thumbnails_vignette,.yarl__thumbnails_top .yarl__thumbnails_vignette{height:100%;left:0;right:0;background:linear-gradient(to right,var(--yarl__color_backdrop,#000) 0,transparent var(--yarl__thumbnails_vignette_size,12%) calc(100% - var(--yarl__thumbnails_vignette_size, 12%)),var(--yarl__color_backdrop,#000) 100%)}.yarl__thumbnails_end .yarl__thumbnails_vignette,.yarl__thumbnails_start .yarl__thumbnails_vignette{width:100%;top:0;bottom:0;background:linear-gradient(to bottom,var(--yarl__color_backdrop,#000) 0,transparent var(--yarl__thumbnails_vignette_size,12%) calc(100% - var(--yarl__thumbnails_vignette_size, 12%)),var(--yarl__color_backdrop,#000) 100%)}.yarl__thumbnails_track{outline:none;gap:var(--yarl__thumbnails_thumbnail_gap,16px)}.yarl__thumbnails_thumbnail{flex:0 0 auto;cursor:pointer;-webkit-appearance:none;-moz-appearance:none;appearance:none;background:var(--yarl__thumbnails_thumbnail_background,#000);border-width:var(--yarl__thumbnails_thumbnail_border,1px);border-style:var(--yarl__thumbnails_thumbnail_border_style,solid);border-color:var(--yarl__thumbnails_thumbnail_border_color,var(--yarl__color_button,hsla(0,0%,100%,.8)));border-radius:var(--yarl__thumbnails_thumbnail_border_radius,4px);-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden;padding:var(--yarl__thumbnails_thumbnail_padding,4px);outline:none;width:var(--yarl__thumbnails_thumbnail_width,120px);height:var(--yarl__thumbnails_thumbnail_height,80px);box-sizing:content-box}.yarl__thumbnails_thumbnail_active{border-color:var(--yarl__thumbnails_thumbnail_active_border_color,var(--yarl__color_button_active,#fff))}.yarl__thumbnails_thumbnail_fadein{opacity:0;animation:yarl__thumbnails_thumbnail_fadein var(--yarl__thumbnails_thumbnail_fadein_duration,.5s) ease-in-out var(--yarl__thumbnails_thumbnail_fadein_delay,0s) forwards}.yarl__thumbnails_thumbnail_fadeout{animation:yarl__thumbnails_thumbnail_fadeout var(--yarl__thumbnails_thumbnail_fadeout_duration,.5s) ease-in-out var(--yarl__thumbnails_thumbnail_fadeout_delay,0s) forwards;cursor:unset}.yarl__thumbnails_thumbnail_placeholder{visibility:hidden;cursor:unset}.yarl__thumbnails_thumbnail:focus{box-shadow:var(--yarl__thumbnails_thumbnail_focus_box_shadow,#000 0 0 0 2px,var(--yarl__color_button,hsla(0,0%,100%,.8)) 0 0 0 4px)}.yarl__thumbnails_thumbnail:focus:not(:focus-visible){box-shadow:unset}.yarl__thumbnails_thumbnail:focus-visible{box-shadow:var(--yarl__thumbnails_thumbnail_focus_box_shadow,#000 0 0 0 2px,var(--yarl__color_button,hsla(0,0%,100%,.8)) 0 0 0 4px)}.yarl__thumbnails_thumbnail_icon{color:var(--yarl__thumbnails_thumbnail_icon_color,var(--yarl__color_button,hsla(0,0%,100%,.8)));filter:var(--yarl__thumbnails_thumbnail_icon_filter,drop-shadow(2px 2px 2px rgba(0,0,0,.8)));position:absolute;top:50%;left:50%;transform:translateX(-50%) translateY(-50%);width:var(--yarl__thumbnails_thumbnail_icon_size,32px);height:var(--yarl__thumbnails_thumbnail_icon_size,32px)}@keyframes yarl__thumbnails_thumbnail_fadein{0%{opacity:0}to{opacity:1}}@keyframes yarl__thumbnails_thumbnail_fadeout{0%{opacity:1}to{opacity:0}}.yarl__toolbar .yarl__button[title="Zoom in"],
+.yarl__toolbar .yarl__button[title="Zoom out"] {
+    display: none !important;
+}
+
+.yarl__navigation_next, .yarl__navigation_prev {
+    visibility: hidden !important;
+}
+
+/* The overlay itself is fully transparent: the background is the
+   .lightbox-backdrop layer below (current photo hyper-blurred) */
+.yarl__root {
+    --yarl__color_backdrop: transparent;
+    /* The button icons stay light in both themes: they overlap the photograph
+       in the top corner, so they are on-photo furniture, not page chrome. The
+       pill under them is a dark glass for the same reason — but a lighter one
+       in the light theme, where the backdrop behind it is pale. */
+    --yarl__color_button: rgb(236 233 226);
+    --yarl__color_button_active: rgb(201 168 106);
+    --pill: rgb(11 12 11 / 0.34);
+    --pill-hover: rgb(11 12 11 / 0.46);
+    --pill-active: rgb(11 12 11 / 0.5);
+}
+
+/* Stated twice for the same reason as the palette in index.css */
+:root[data-theme="light"] .yarl__root {
+    --pill: rgb(11 12 11 / 0.2);
+    --pill-hover: rgb(11 12 11 / 0.3);
+    --pill-active: rgb(11 12 11 / 0.34);
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .yarl__root {
+        --pill: rgb(11 12 11 / 0.2);
+        --pill-hover: rgb(11 12 11 / 0.3);
+        --pill-active: rgb(11 12 11 / 0.34);
+    }
+}
+
+/* Ambient backdrop: fullscreen blurred thumbnail of the current photo under
+   a dark overlay, sitting just below the yarl portal (z-index 9999) */
+.lightbox-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: var(--bg);
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.lightbox-backdrop.shown {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox-backdrop img {
+    position: absolute;
+    /* Oversized so the blur never reveals fading edges */
+    inset: -8%;
+    width: 116%;
+    height: 116%;
+    object-fit: cover;
+    /* The src is the tiny 24px placeholder, so upscaling does most of the
+       smoothing; a modest radius is enough and much cheaper to rasterize
+       than the old blur(64px) over a real thumbnail */
+    filter: blur(32px) saturate(120%) brightness(0.6);
+    opacity: 0;
+    will-change: opacity;
+    animation: lightbox-backdrop-fade 0.5s ease forwards;
+}
+
+@keyframes lightbox-backdrop-fade {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Dark overlay on top of the blurred photo */
+.lightbox-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgb(var(--bg-rgb) / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lightbox-backdrop {
+        transition: none;
+    }
+
+    .lightbox-backdrop img {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/* Blur-up under the fullsize slide: base64 placeholder (instant) with the
+   thumbnail stacked on top, both hyper-blurred, fading out once the real
+   image has loaded. Padding mirrors .yarl__slide so the contained blurred
+   layer lines up with where the fullsize image will appear. */
+.slide-blur-up {
+    position: absolute;
+    inset: 0;
+    padding: calc(
+        var(--yarl__carousel_padding_px, 0) * 1px + 100 /
+            (
+                var(--yarl__carousel_slides_count) * 100 +
+                    (var(--yarl__carousel_slides_count) - 1) *
+                    var(--yarl__carousel_spacing_percent, 0)
+            ) * var(--yarl__carousel_padding_percent, 0) * 1%
+    );
+    display: grid;
+    /* Definite 100% tracks: with auto tracks the imgs' height:100% would
+       resolve to auto and overflow the slide */
+    grid-template: 100% / 100%;
+    pointer-events: none;
+    /* Blur the stack as a group: one rasterization per slide instead of one
+       per stacked image */
+    filter: blur(32px) saturate(115%);
+    transition: opacity 0.4s ease;
+}
+
+.slide-blur-up.hidden {
+    opacity: 0;
+}
+
+.slide-blur-up img {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Soften the fullsize image swap over the blurred placeholder. The corner
+   radius matches the one the gallery thumbnails and the /p/ page frame use,
+   so the photo keeps the same silhouette wherever it is shown. */
+.yarl__slide_image {
+    transition: opacity 0.35s ease;
+    border-radius: 8px;
+}
+
+/* ...but the filmstrip reuses .yarl__slide_image for its own images, so the
+   radius above lands on them too — and there the frame is the button around
+   it, which draws the border and already clips to its own 6px. An 8px image
+   inside a 5px clip pulls away from the corners and lets the button's
+   background show through as four pale notches, with the photo and the gold
+   selection ring visibly out of round. The image has no shape of its own to
+   keep here: the button is the shape. */
+.yarl__thumbnails_thumbnail .yarl__slide_image {
+    border-radius: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slide-blur-up,
+    .yarl__slide_image {
+        transition: none;
+    }
+}
+
+/* Frosted round toolbar buttons (slideshow, HQ, share, close) */
+.yarl__toolbar {
+    padding: 14px;
+    gap: 10px;
+}
+
+.yarl__toolbar .yarl__button {
+    width: 44px;
+    height: 44px;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--pill);
+    border: 1px solid rgb(236 233 226 / 0.28);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.2s ease, color 0.2s ease,
+        background-color 0.2s ease, transform 0.15s ease;
+}
+
+/* Press feedback (the only feedback touch devices get, where :hover is inert) */
+.yarl__toolbar .yarl__button:active {
+    transform: scale(0.88);
+    border-color: rgb(201 168 106 / 0.7);
+    background: var(--pill-active);
+}
+
+/* Pointer devices only: on touch a tap would leave the hover style stuck */
+@media (hover: hover) {
+    .yarl__toolbar .yarl__button:hover {
+        border-color: rgb(201 168 106 / 0.7);
+        background: var(--pill-hover);
+        color: rgb(201 168 106);
+    }
+}
+
+/* The one worded control: it leaves the lightbox for the photo's own page, and
+   no icon conveyed that. Stretched into a pill rather than squeezed into the
+   44px circle the other buttons use. */
+.yarl__toolbar .yarl__button.lightbox-details {
+    width: auto;
+    gap: 7px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+}
+
+/* The arrow rides slightly high, the way an external-link mark usually does */
+.lightbox-details svg {
+    margin-top: -1px;
+}
+
+@media (max-width: 420px) {
+    .yarl__toolbar .yarl__button.lightbox-details {
+        padding: 0 13px;
+        font-size: 12px;
+    }
+}
+
+/* Feedback pill for the share button (clipboard copy) */
+.share-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 116px;
+    transform: translate(-50%, 8px);
+    z-index: 10001;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgb(var(--surface-rgb) / 0.85);
+    border: 1px solid rgb(var(--text-rgb) / 0.18);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    font-family: "Inter", sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+}
+
+.share-toast.shown {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+/* Filmstrip: dimmed thumbnails, gold border on the active one.
+   The container is fixed-width (5 thumbnails) with the edge fade on it,
+   not on the track: the track slides during navigation, so a mask on it
+   would drag the fade along and snap back — this way the strip scrolls
+   under a stationary fade, like a conveyor belt. */
+.yarl__thumbnails_container {
+    width: 530px; /* 5 × (96px + 2px border) + 4 × 10px gap */
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 14px 0 30px;
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 15%,
+        black 85%,
+        transparent
+    );
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent,
+        black 15%,
+        black 85%,
+        transparent
+    );
+}
+
+/* The slide is a WAAPI transform animation: promoting the track to its own
+   compositor layer keeps it smooth while the main thread decodes the
+   freshly-changed full-size photo */
+.yarl__thumbnails_track {
+    will-change: transform;
+}
+
+/* Same reasoning for the main swipe track: without this the browser only
+   promotes it to its own layer once the drag has already started, costing
+   the first frame or two of every swipe */
+.yarl__carousel {
+    will-change: transform;
+}
+
+/* The plugin's enter/leave keyframes end at full opacity; ours must end at
+   the dimmed resting opacity or the new thumbnail pops from 1 to 0.45 */
+@keyframes yarl__thumbnails_thumbnail_fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 0.45;
+    }
+}
+
+@keyframes yarl__thumbnails_thumbnail_fadeout {
+    from {
+        opacity: 0.45;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.yarl__thumbnails_thumbnail {
+    /* On-photo furniture like the rest of the lightbox: the filmstrip lies on
+       the blurred photograph in both themes, so it keeps the dark palette
+       instead of the page's. Without this the light theme handed the strip a
+       cream placeholder, a dark hairline that vanished against the backdrop,
+       and the page's deeper bronze as the selection ring, where the dark
+       theme's gold is what actually reads.
+       Note that everything below reads the *channels*, never --surface or
+       --accent: those are computed on :root, so their value is already
+       resolved by the time it inherits down here and restating the channels on
+       this element would not reach them. Only a usage written here does. */
+    --surface-rgb: 19 21 19;
+    --text-rgb: 236 233 226;
+    --accent-rgb: 201 168 106;
+    --yarl__thumbnails_thumbnail_border_color: rgb(var(--text-rgb) / 0.18);
+    --yarl__thumbnails_thumbnail_active_border_color: rgb(var(--accent-rgb));
+    border-radius: 6px;
+    background: rgb(var(--surface-rgb));
+    opacity: 0.45;
+    transition: opacity 0.25s ease, border-color 0.25s ease;
+}
+
+.yarl__thumbnails_thumbnail_active {
+    opacity: 1;
+}
+
+@media (hover: hover) {
+    .yarl__thumbnails_thumbnail:hover {
+        opacity: 1;
+    }
+}
+
+/* Smaller thumbnails on phones (element-level vars win over the inline
+   ones the plugin sets on the container) */
+@media (max-width: 640px) {
+    .yarl__thumbnails_container {
+        width: 402px; /* 5 × (72px + 2px border) + 4 × 8px gap */
+        padding: 10px 0 24px;
+    }
+
+    .yarl__thumbnails_track {
+        --yarl__thumbnails_thumbnail_gap: 8px;
+    }
+
+    .yarl__thumbnails_thumbnail {
+        --yarl__thumbnails_thumbnail_width: 72px;
+        --yarl__thumbnails_thumbnail_height: 48px;
+    }
+}
+/* ---------- Self-hosted fonts (latin subset, variable weight files) ---------- */
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cormorant-garamond-latin-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Colours are declared twice: as raw channels (--*-rgb) and as the solid
+   colour derived from them. Rules that need transparency use
+   rgb(var(--x-rgb) / 0.3) instead of a hardcoded rgba(), so a theme only has
+   to restate the six channel lines below — the solid tokens re-resolve against
+   whichever channels won. */
+:root {
+  --bg-rgb: 11 12 11;
+  --surface-rgb: 19 21 19;
+  --surface-2-rgb: 27 30 27;
+  --text-rgb: 236 233 226;
+  --muted-rgb: 168 164 154;
+  --accent-rgb: 201 168 106;
+
+  --bg: rgb(var(--bg-rgb));
+  --surface: rgb(var(--surface-rgb));
+  --surface-2: rgb(var(--surface-2-rgb));
+  --text: rgb(var(--text-rgb));
+  --muted: rgb(var(--muted-rgb));
+  --accent: rgb(var(--accent-rgb));
+
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
+
+  color-scheme: dark;
+}
+
+/* The light palette is stated twice on purpose: once for "the device asks for
+   light and the visitor has not overridden it", once for an explicit choice.
+   Plain CSS has no way to share one declaration block between the two, and
+   light-dark() is not an option — it needs Safari 17.5, while this project
+   still targets Safari 15 (see cssTarget in vite.config.js).
+   The accent is a deeper bronze here: the dark theme's gold only reaches
+   1.9:1 on a light background, far under the 4.5:1 needed for text. */
+:root[data-theme="light"] {
+  --bg-rgb: 246 244 239;
+  --surface-rgb: 234 230 221;
+  --surface-2-rgb: 225 220 209;
+  --text-rgb: 26 28 25;
+  --muted-rgb: 106 102 94;
+  --accent-rgb: 122 92 34;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-rgb: 246 244 239;
+    --surface-rgb: 234 230 221;
+    --surface-2-rgb: 225 220 209;
+    --text-rgb: 26 28 25;
+    --muted-rgb: 106 102 94;
+    --accent-rgb: 122 92 34;
+
+    color-scheme: light;
+  }
+}
+
+/* Anything painted on top of a photo keeps the dark theme's colours in both
+   themes: what it has to contrast with is the photograph, not the page.
+   Restating the channels *and* the solid tokens is required — the solid ones
+   inherit an already-resolved value, so overriding only the channels would
+   not reach them. */
+.hero-content,
+.hero .nav,
+.gallery-caption,
+.gallery-badge-new,
+.featured-text {
+  --text-rgb: 236 233 226;
+  --muted-rgb: 168 164 154;
+  --surface-rgb: 19 21 19;
+  --accent-rgb: 201 168 106;
+
+  --text: rgb(var(--text-rgb));
+  --muted: rgb(var(--muted-rgb));
+  --surface: rgb(var(--surface-rgb));
+  --accent: rgb(var(--accent-rgb));
+
+  /* Setting `color` too, not just the tokens: the headings and captions inside
+     these containers declare no colour of their own, so they inherit the value
+     already resolved on <body> — redefining --text alone never reaches them. */
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Replace the default blue mobile tap flash with an accent-tinted one
+     (the property is inherited, so this covers every tappable element) */
+  -webkit-tap-highlight-color: rgb(var(--accent-rgb) / 0.15);
+}
+
+/* …except on the pills and circles: the tap flash is painted as the element's
+   rectangle whatever its border-radius, so a chip flashed as a square. They
+   opt out of it and get the same tint back as an :active background, which
+   does follow the radius (and shows on a desktop press too). */
+.species-chip,
+.theme-toggle {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.species-chip:active,
+.theme-toggle:active {
+  background: rgb(var(--accent-rgb) / 0.15);
+}
+
+/* An active chip is already filled with the accent, so it darkens instead */
+.species-chip.active:active {
+  background: rgb(var(--accent-rgb) / 0.75);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Transparent overlay link covering the whole thumbnail: gives each gallery
+   item a real href to its /p/ page (crawlable, cmd-clickable) without moving
+   anything in the layout. Above the caption gradient, which sits at z-index 2.
+   The focus ring is drawn inwards because .gallery-item clips its overflow. */
+.gallery-link {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.gallery-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/* ---------- Shared typography ---------- */
+
+.overline {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 14px;
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(32px, 4.5vw, 48px);
+  line-height: 1.15;
+  margin: 0 0 18px;
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.06);
+  animation: hero-drift 18s ease-out forwards;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.hero-bg.loaded {
+  opacity: 1;
+}
+
+.hero-bg-placeholder {
+  opacity: 1;
+  filter: blur(24px);
+  animation: none;
+  transform: scale(1.1);
+}
+
+@keyframes hero-drift {
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Two jobs, deliberately split. The scrim that darkens the photograph so the
+   title and nav stay readable is a constant dark — in the light theme a
+   theme-following scrim would lighten the photo and wash the white title out.
+   Only the join into the page below follows the theme, and it is listed first
+   so it paints over the scrim at the very bottom edge. */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  /* Wide viewports (heroLarge): eased, but over roughly half the run of the
+     narrow-viewport join below — the wider photo carries a hard edge better,
+     and a long wash up a landscape hero eats too much of the image. */
+  --hero-join: linear-gradient(
+    to top,
+    var(--bg) 0%,
+    rgb(var(--bg-rgb) / 0.88) 5%,
+    rgb(var(--bg-rgb) / 0.6) 10%,
+    rgb(var(--bg-rgb) / 0.3) 15%,
+    rgb(var(--bg-rgb) / 0.1) 19%,
+    rgb(var(--bg-rgb) / 0) 22%
+  );
+  /* The layer order matters: the join paints over the scrim at the bottom edge */
+  background: var(--hero-join),
+    radial-gradient(
+      ellipse 55% 40% at 50% 52%,
+      rgb(11 12 11 / 0.2),
+      transparent 75%
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(11 12 11 / 0.55) 0%,
+      rgb(11 12 11 / 0.15) 18%,
+      rgb(11 12 11 / 0.08) 40%,
+      rgb(11 12 11 / 0.18) 80%,
+      rgb(11 12 11 / 0.24) 100%
+    );
+}
+
+/* Below the heroLarge breakpoint — where the narrower heroSmall photo is
+   shown — the join is eased over ~38% of the hero with hand-placed stops
+   instead of a short linear ramp, which banded visibly there. Only the join
+   layer is swapped, hence the custom property; the scrim above is untouched.
+   The query must stay the mirror of HERO_LARGE_QUERY in Gallery.jsx. */
+@media (max-width: 1023.98px) {
+  .hero-overlay {
+    --hero-join: linear-gradient(
+      to top,
+      var(--bg) 0%,
+      rgb(var(--bg-rgb) / 0.94) 7%,
+      rgb(var(--bg-rgb) / 0.78) 14%,
+      rgb(var(--bg-rgb) / 0.55) 21%,
+      rgb(var(--bg-rgb) / 0.32) 27%,
+      rgb(var(--bg-rgb) / 0.14) 33%,
+      rgb(var(--bg-rgb) / 0) 38%
+    );
+  }
+}
+
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+}
+
+.nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(18px, 3vw, 36px);
+  padding: 26px clamp(20px, 4vw, 56px);
+}
+
+.nav-links {
+  display: flex;
+  gap: clamp(18px, 3vw, 36px);
+}
+
+.nav-links button {
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 1), 0 2px 6px rgba(0, 0, 0, 0.95), 0 4px 18px rgba(0, 0, 0, 0.9);
+  transition: color 0.2s ease;
+}
+
+.nav-links button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.nav-links button:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Hover styles only on devices with a real pointer: on touch screens a tap
+   would leave them stuck on after the click */
+@media (hover: hover) {
+  .nav-links button:hover::after {
+    transform: scaleX(1);
+  }
+
+  .nav-links button:hover {
+    opacity: 1;
+    color: var(--accent);
+  }
+}
+
+/* Name on the left, everything else grouped at the right — the same shape as
+   the hero bar above the photo, so the two read as one nav. The auto margin
+   lives on the brand rather than on the links, so it keeps working below
+   820px where the links are display:none and only the hamburger is left. */
+.sticky-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 3vw, 36px);
+  padding: 14px clamp(20px, 4vw, 56px);
+  border-bottom: 1px solid rgb(var(--text-rgb) / 0.08);
+  transform: translateY(-100%);
+  transition: transform 0.35s ease;
+}
+
+/* Background + blur live on a pseudo-element, not on the nav itself: Android
+   Chromium stops rendering backdrop-filter on the element that carries the
+   slide-in transform transition (crbug 1194050), leaving the bar see-through */
+.sticky-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--bg-rgb) / 0.82),
+    rgb(var(--bg-rgb) / 0.55)
+  );
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.sticky-nav.shown {
+  transform: none;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.sticky-nav .nav-links button {
+  text-shadow: none;
+}
+
+.sticky-brand {
+  flex: none;
+  margin-right: auto;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  transition: color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .sticky-brand:hover {
+    color: var(--accent);
+  }
+}
+
+/* ---------- Theme toggle ---------- */
+
+/* The circular border is what makes it read as a button: a bare glyph next to
+   the nav links looked like another link, or like decoration */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 1px solid rgb(var(--text-rgb) / 0.22);
+  border-radius: 999px;
+  color: var(--text);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+/* In the hero bar it sits over the photograph, so it needs the same shadow
+   the nav links wear */
+.nav .theme-toggle {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 1), 0 2px 6px rgb(0 0 0 / 0.95);
+}
+
+.nav .theme-toggle svg,
+.sticky-nav .theme-toggle svg {
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.55));
+}
+
+/* Over the hero photo the hairline border needs to hold up against whatever
+   is behind it, same reasoning as the nav links' text shadow */
+.nav .theme-toggle {
+  border-color: rgb(var(--text-rgb) / 0.4);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+}
+
+@media (hover: hover) {
+  .theme-toggle:hover {
+    opacity: 1;
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* The drawer copy is a labelled pill rather than a bare icon: on its own in a
+   panel of worded links, an unlabelled glyph reads as an afterthought */
+.theme-toggle-labelled {
+  width: auto;
+  height: auto;
+  justify-content: flex-start;
+  padding: 10px 18px;
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+/* ---------- Language toggle ---------- */
+
+/* It wears .theme-toggle too, so the circle, the border, the hover and the
+   collapse into the drawer all come from the rules above; only its content
+   differs — a two-letter code where the theme toggle draws a glyph. The fixed
+   width is what makes the two labelled pills line their text up. */
+/* Weight 500 and the nav's own letter-spacing rather than a bold, tight pair
+   of letters: at 12px inside a hairline circle, next to a 1.7px-stroke glyph,
+   anything heavier reads as a badge shouting at the icon beside it */
+.lang-toggle-code {
+  width: 20px;
+  flex: none;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-indent: 0.08em; /* offsets the trailing letter-space, re-centring "EN" */
+}
+
+/* In both navs it needs a shadow — but not the nav links' one, which it would
+   otherwise inherit through .nav .theme-toggle: that is two stacked shadows
+   sized for 15px letter-spaced text, and on a 12px "EN" it reads as a smudge.
+   This is the drop-shadow the sun/moon glyph beside it already wears, so the
+   two lift off the background by the same amount. */
+.nav .lang-toggle,
+.sticky-nav .lang-toggle {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
+}
+
+/* The drawer stacks the two pills; without this they would sit side by side
+   and the second would be cut off on a narrow phone */
+.nav-drawer-theme {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid rgb(var(--text-rgb) / 0.12);
+}
+
+/* ---------- Mobile hamburger + drawer ---------- */
+
+/* Hidden on desktop; the max-width: 600px block swaps it in for .nav-links */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 42px;
+  height: 42px;
+  margin: -8px -10px;
+}
+
+.nav-burger span {
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--text);
+}
+
+/* Over the hero photo the lines need a shadow, like the text links */
+.nav .nav-burger span {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.nav-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.nav-drawer-root.open .nav-drawer-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Horizontal glass sheet sliding down from the top edge */
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 28px 30px;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--bg-rgb) / 0.72),
+    rgb(var(--bg-rgb) / 0.45)
+  );
+  border-bottom: 1px solid rgb(var(--text-rgb) / 0.12);
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  transform: translateY(-100%);
+  transition: transform 0.35s ease;
+}
+
+.nav-drawer-root.open .nav-drawer {
+  transform: none;
+}
+
+.nav-drawer-close {
+  align-self: flex-end;
+  width: 42px;
+  height: 42px;
+  margin-right: -14px;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .nav-drawer-close:hover {
+    color: var(--text);
+  }
+}
+
+.nav-drawer-links {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+/* The drawer is touch-first, where :hover never fires — so the press state is
+   the feedback that matters. Both are full-width rows rather than tinted text:
+   a colour change alone is easy to miss on a phone. */
+.nav-drawer-links button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin: 0 -14px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-drawer-links button:active,
+.nav-drawer-theme .theme-toggle:active {
+  background: rgb(var(--accent-rgb) / 0.18);
+  color: var(--accent);
+}
+
+@media (hover: hover) {
+  .nav-drawer-links button:hover {
+    background: rgb(var(--text-rgb) / 0.07);
+    color: var(--accent);
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 24px 60px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+.hero-content.visible {
+  opacity: 1;
+  transform: none;
+}
+
+.hero-content h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(46px, 8vw, 92px);
+  line-height: 1.05;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85), 0 4px 14px rgba(0, 0, 0, 0.85), 0 8px 50px rgba(0, 0, 0, 0.9);
+}
+
+.hero-tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(18px, 2.4vw, 24px);
+  color: var(--text);
+  opacity: 0.9;
+  max-width: 560px;
+  margin: 18px 0 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9), 0 4px 24px rgba(0, 0, 0, 0.85);
+}
+
+.hero-content .overline {
+  font-size: clamp(14px, 1.5vw, 18px);
+  margin: 16px 0 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 34px rgba(0, 0, 0, 0.9);
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(60px, 8vw, 110px) clamp(20px, 4vw, 56px) 0;
+}
+
+.section-header {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto clamp(36px, 5vw, 64px);
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+}
+
+.section-header .section-title::after {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.8;
+  margin: 18px auto 0;
+}
+
+.section-sub {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 14px 0 0;
+}
+
+.species-filter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto clamp(28px, 4vw, 40px);
+  max-width: 900px;
+}
+
+.species-chip {
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgb(var(--text-rgb) / 0.16);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.species-chip:hover {
+  color: var(--text);
+  border-color: rgb(var(--text-rgb) / 0.32);
+}
+
+.species-chip.active {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* The year row is subordinate to the species row above it: same chips, pulled
+   up tight so the two read as one filter block rather than two controls */
+.year-filter {
+  margin-top: -18px;
+}
+
+.gallery-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 0 20px;
+}
+
+.gallery-empty button {
+  color: var(--accent);
+  border-bottom: 1px solid rgb(var(--accent-rgb) / 0.45);
+}
+
+/* ---------- Gallery ---------- */
+
+/* Columns are assigned in JS (greedy shortest-column packing, see
+   distributeIntoColumns in Gallery.jsx) rather than via CSS column-count, so
+   the gallery order (shooting date, most recent first) reads left-to-right
+   across the top row instead of column-major (CSS columns fill column 1
+   fully before column 2). align-items must stay flex-start: flex's default
+   stretch would pad each column out to the tallest one's height, leaving
+   invisible trailing space that pushes the section below it down. */
+.gallery-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.gallery-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.reveal-item {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal-item.shown {
+  opacity: 1;
+  transform: none;
+}
+
+.gallery-item {
+  position: relative;
+  margin: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+}
+
+.gallery-item img {
+  /* Positioned so it always paints above the absolutely-positioned blur
+     placeholder, even once the load transform settles to none */
+  position: relative;
+  width: 100%;
+  /* Keep height derived from the width/height attributes' aspect ratio, so
+     unloaded lazy images already reserve their final space */
+  height: auto;
+  display: block;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.7s ease, transform 0.6s ease;
+}
+
+.gallery-item img.loaded {
+  opacity: 1;
+  transform: none;
+}
+
+/* Tiny inline blur-up placeholder: fills the space the width/height
+   attributes reserve, covered when the thumbnail fades in on top */
+.gallery-item img.gallery-placeholder {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(16px);
+  transform: scale(1.08);
+  opacity: 1;
+  transition: none;
+}
+
+/* Pointer devices only: on touch a tap would leave the hover zoom stuck */
+@media (hover: hover) {
+  .gallery-item:hover img.loaded {
+    transform: scale(1.045);
+  }
+}
+
+.gallery-caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 72px 16px 14px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.22) 55%,
+    transparent 95%
+  );
+  z-index: 2;
+  font-family: var(--serif);
+  font-size: 19px;
+  letter-spacing: 0.03em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.gallery-caption-species {
+  display: block;
+  font-style: italic;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: rgb(var(--text-rgb) / 0.75);
+}
+
+.gallery-badge-new {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(var(--surface-rgb) / 0.4);
+  border: 1px solid rgb(var(--text-rgb) / 0.3);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* Progressive blur in two stacked layers — a soft tall one and a stronger
+   short one — each fading out with its own mask, so the blur eases in
+   gradually instead of starting at a visible edge. They live on the item
+   (not inside the fading caption) and carry will-change because Chromium
+   renders a black backdrop for the first frames when it has to create the
+   backdrop-filter surface mid-hover. */
+.gallery-item::before,
+.gallery-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(150px, 62%);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  will-change: opacity;
+}
+
+.gallery-item::before {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  mask-image: linear-gradient(to top, black 45%, transparent 92%);
+  -webkit-mask-image: linear-gradient(to top, black 45%, transparent 92%);
+}
+
+.gallery-item::after {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  mask-image: linear-gradient(to top, black 18%, transparent 58%);
+  -webkit-mask-image: linear-gradient(to top, black 18%, transparent 58%);
+}
+
+/* Pointer devices only: on touch the tapped item kept its :hover state after
+   closing the lightbox, leaving the caption stuck on */
+@media (hover: hover) {
+  .gallery-item:hover::before,
+  .gallery-item:hover::after {
+    opacity: 1;
+  }
+
+  .gallery-item:hover .gallery-caption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.gallery-item:focus-visible::before,
+.gallery-item:focus-visible::after {
+  opacity: 1;
+}
+
+.gallery-item:focus-visible .gallery-caption {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- About ---------- */
+
+.about {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  gap: clamp(36px, 6vw, 80px);
+  align-items: center;
+  max-width: 1100px;
+}
+
+.about-photo {
+  position: relative;
+}
+
+.about-photo img,
+.about-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+.about-photo::after {
+  content: "";
+  position: absolute;
+  inset: 14px -14px -14px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.about-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--serif);
+  font-size: 64px;
+  letter-spacing: 0.1em;
+}
+
+.about-text p {
+  color: var(--muted);
+  margin: 0 0 16px;
+  max-width: 60ch;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.shown {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Featured ---------- */
+
+.featured {
+  max-width: 1100px;
+}
+
+.featured-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  aspect-ratio: 16 / 9;
+}
+
+.featured-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(20px);
+  transform: scale(1.08);
+}
+
+.featured-img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.7s ease, transform 0.6s ease;
+}
+
+.featured-img.loaded {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .featured-card:hover .featured-img.loaded {
+    transform: scale(1.035);
+  }
+}
+
+.featured-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.78),
+    rgba(0, 0, 0, 0.18) 45%,
+    transparent 75%
+  );
+}
+
+.featured-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
+  padding: clamp(24px, 5vw, 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.featured-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 3.4vw, 36px);
+  color: var(--text);
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85), 0 4px 14px rgba(0, 0, 0, 0.85), 0 8px 50px rgba(0, 0, 0, 0.9);
+}
+
+.featured-species {
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  color: rgb(var(--text-rgb) / 0.75);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 34px rgba(0, 0, 0, 0.9);
+}
+
+.featured-desc {
+  color: rgb(var(--text-rgb) / 0.85);
+  font-size: 15px;
+  max-width: 60ch;
+  margin-top: 4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9), 0 4px 24px rgba(0, 0, 0, 0.85);
+}
+
+/* ---------- Sub-page teasers (specie / numeri) ---------- */
+
+/* Two cards where the gallery ends, one per sub-page: those pages are
+   otherwise only reachable from the nav, which by that point in the scroll is
+   either behind the visitor or folded into the hamburger. */
+.previews {
+  max-width: 1100px;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(14px, 2vw, 24px);
+}
+
+/* Side by side the two cards get too narrow for their headings before the
+   layout itself runs out of room */
+@media (max-width: 820px) {
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: clamp(22px, 3vw, 34px);
+  background: var(--card-bg, var(--surface));
+  border: 1px solid rgb(var(--text-rgb) / 0.08);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* Light theme only: --surface is a step *down* from a near-white page, which
+   paints these cards as recessed panels where in the dark theme they read as
+   lifted. A tone between --surface and --bg puts them back on top of the page.
+   It is set as a custom property rather than as the background itself so the
+   :hover rule below still wins on specificity — and read back on the very
+   element that declares it, the one place a token override works outside
+   :root. Written twice for the same reason the palette is: the un-overridden
+   case is a media query, an explicit choice is the attribute. */
+:root[data-theme="light"] .preview-card {
+  --card-bg: rgb(240 237 229);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .preview-card {
+    --card-bg: rgb(240 237 229);
+  }
+}
+
+@media (hover: hover) {
+  .preview-card:hover {
+    background: var(--surface-2);
+    border-color: rgb(var(--accent-rgb) / 0.35);
+  }
+
+  .preview-card:hover .preview-cta::after {
+    transform: translateX(5px);
+  }
+}
+
+.preview-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.preview-card .overline {
+  margin: 0;
+}
+
+/* Smaller than a .section-title: these are two cards inside a section, not
+   two sections */
+.preview-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(24px, 2.6vw, 30px);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.preview-sub {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0;
+  max-width: 44ch;
+}
+
+/* margin-top: auto pins it to the bottom edge, so the two cards line their
+   last row up whatever the copy above it does */
+.preview-cta {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+.preview-cta::after {
+  content: "→";
+  display: inline-block;
+  margin-left: 8px;
+  transition: transform 0.25s ease;
+}
+
+/* The covers scale with the card rather than sitting at a fixed size, so the
+   strip keeps its shape from a phone up to the two-column grid */
+.preview-thumbs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.preview-thumbs picture {
+  flex: 1;
+  min-width: 0;
+}
+
+.preview-thumbs img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.preview-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+}
+
+.preview-figure {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Same treatment as the tiles on /numeri: sans, and no tabular figures — each
+   of these is a number read on its own, not a column of them */
+.preview-figure b {
+  font-family: var(--sans);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+
+/* The months chart with its axis and labels taken off: it is here to show what
+   the page looks like, and the figures above it carry the meaning */
+.preview-spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: 100%;
+  height: 46px;
+  margin-top: 2px;
+  /* The same hairline the charts stand on. Months with no shots draw no bar,
+     so without a baseline the strip breaks into unrelated pieces instead of
+     reading as one continuous run of months. */
+  border-bottom: 1px solid rgb(var(--text-rgb) / 0.14);
+}
+
+.preview-spark span {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: rgb(var(--accent-rgb) / 0.55);
+}
+
+/* ---------- Contacts ---------- */
+
+.contacts {
+  text-align: center;
+}
+
+.contacts .section-header {
+  margin-bottom: 28px;
+}
+
+.contacts-email {
+  display: inline-block;
+  font-family: var(--serif);
+  font-size: clamp(22px, 3.2vw, 34px);
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(var(--accent-rgb) / 0.45);
+  padding-bottom: 4px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .contacts-email:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+.contacts-email:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+  text-align: center;
+  padding: clamp(70px, 9vw, 120px) 24px 40px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.footer-mark {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  margin: 0;
+}
+
+.footer-tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer .footer-legal {
+  margin-top: 10px;
+}
+
+.footer-legal a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(var(--muted-rgb) / 0.4);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .footer-legal a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* ---------- Legal pages (privacy / cookie policy) ---------- */
+
+.policy {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(90px, 12vw, 140px) 24px 40px;
+}
+
+/* These pages carry no nav bar, so the language toggle rides along with the
+   back link — otherwise there is no way to switch language from /numeri */
+.subpage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 34px;
+}
+
+.policy-back {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .policy-back:hover {
+    color: var(--accent);
+  }
+}
+
+.policy-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(34px, 5vw, 48px);
+  line-height: 1.1;
+  margin: 0 0 6px;
+}
+
+.policy-updated {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 36px;
+}
+
+.policy h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 24px;
+  margin: 34px 0 8px;
+}
+
+.policy p {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.policy a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgb(var(--accent-rgb) / 0.45);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .policy a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* ---------- Sub-pages (species index, stats) ---------- */
+
+/* Same shell as the legal pages, but grids and charts need more room than a
+   column of prose does */
+.subpage-wide {
+  max-width: 940px;
+}
+
+.subpage .overline {
+  margin-bottom: 10px;
+}
+
+.subpage-sub {
+  color: var(--muted);
+  margin: 0 0 40px;
+  max-width: 62ch;
+}
+
+/* ---------- Species index ---------- */
+
+.species-index {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.species-index a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px 10px 10px;
+  background: var(--surface);
+  border-radius: 4px;
+  border-bottom: none;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.species-index img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 3px;
+  display: block;
+}
+
+.species-index-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.species-index-name {
+  display: block;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.species-index-latin {
+  display: block;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.species-index-count {
+  flex: none;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+@media (hover: hover) {
+  .species-index a:hover {
+    background: var(--surface-2);
+  }
+}
+
+/* ---------- Stats ---------- */
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 56px;
+}
+
+.stat-tile {
+  background: var(--surface);
+  border-radius: 4px;
+  padding: 18px 20px;
+}
+
+.stat-tile-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Sans, and proportional figures: tabular digits make a large standalone
+   number look loose, and a serif here would read as decoration */
+.stat-tile-value {
+  display: block;
+  font-family: var(--sans);
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.25;
+  margin-top: 6px;
+}
+
+.stat-tile-sub {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.chart {
+  margin: 0 0 52px;
+}
+
+.chart-caption {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  max-width: 62ch;
+}
+
+/* Columns: a flex row rather than an SVG, so labels keep their real size when
+   the chart reflows onto a phone instead of being scaled down with the plot */
+.chart-columns {
+  display: flex;
+  align-items: flex-end;
+  /* Set per chart in Stats.jsx: a dense one halves the gutter */
+  gap: var(--chart-gap, 4px);
+  border-bottom: 1px solid rgb(var(--text-rgb) / 0.14);
+  padding-bottom: 0;
+}
+
+.chart-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chart-column-track {
+  width: 100%;
+  max-width: 24px;
+  height: 150px;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Rounded at the data end, square at the baseline. The extent arrives as
+   --fill rather than an inline height: the mobile layout below reads the same
+   number as a width, which an inline style could not be turned into. */
+.chart-column-fill {
+  position: relative;
+  width: 100%;
+  height: var(--fill);
+  min-height: 2px;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+}
+
+/* The row-shaped labels only exist below 600px */
+.chart-row-label,
+.chart-row-value {
+  display: none;
+}
+
+.chart-column-value {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A thinned axis leaves some columns with an empty label (see photosPerMonth):
+   the box has to stay the same height regardless, or that column would be
+   shorter than its neighbours and .chart-columns' flex-end alignment would
+   drop its bar below the baseline. Hence the fixed line-height and the
+   min-height matching it. */
+.chart-column-label {
+  font-size: 11px;
+  line-height: 1.2;
+  min-height: 1.2em;
+  color: var(--muted);
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+.gear-table th,
+.gear-table td {
+  text-align: left;
+  font-weight: 400;
+  padding: 5px 24px 5px 0;
+  border-bottom: 1px solid rgb(var(--text-rgb) / 0.08);
+  color: var(--muted);
+}
+
+.gear-table td:last-child {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Horizontal bars: the species names only fit beside the bar, and every value
+   is labelled at the tip so no number is reachable through hover alone */
+.chart-bars {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chart-bars a {
+  display: grid;
+  grid-template-columns: minmax(120px, 190px) 1fr 34px;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 0;
+  text-decoration: none;
+  border-bottom: none;
+  color: var(--text);
+}
+
+.chart-bar-label {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-bar-track {
+  display: block;
+  height: 14px;
+}
+
+.chart-bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;
+  transition: opacity 0.2s ease;
+}
+
+.chart-bar-value {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+  .chart-bars a:hover .chart-bar-fill {
+    opacity: 0.75;
+  }
+
+  .chart-bars a:hover .chart-bar-value {
+    color: var(--text);
+  }
+}
+
+/* Where the photos come from: the map on one side, the same numbers as bars on
+   the other, so the ranking is readable without decoding shades of gold */
+.region-chart {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.region-map {
+  flex: none;
+  width: 150px;
+  height: auto;
+}
+
+.region-map-country {
+  fill: none;
+  stroke: rgb(var(--text-rgb) / 0.28);
+  stroke-width: 0.45;
+  stroke-linejoin: round;
+}
+
+.region-map-active {
+  fill: var(--accent);
+  stroke: var(--accent);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+
+.region-list {
+  flex: 1 1 320px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.region-list li {
+  display: grid;
+  grid-template-columns: minmax(120px, 190px) 1fr 34px;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 0;
+}
+
+.region-list-name {
+  font-size: 14px;
+}
+
+/* A place outside the map keeps its row and its count, but has no bar to sit
+   in the same scale as the regions */
+.region-list-other .region-list-name {
+  color: var(--muted);
+}
+
+.region-single {
+  margin: 0;
+}
+
+.region-single b {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.region-single span {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.region-note {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 18px 0 0;
+}
+
+.stats-heading {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 26px;
+  margin: 48px 0 16px;
+}
+
+.gear-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+.gear-table th {
+  color: var(--text);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1000px) {
+  .about {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .about-photo {
+    max-width: 300px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Tighter vertical rhythm: shorter hero, less air around section headers */
+  .section {
+    padding-top: 40px;
+  }
+
+  /* Twenty-odd columns across a phone are too narrow to label at all, so the
+     column charts lie down into one row per bucket — the same shape as the
+     species ranking, and the page scrolls the way a phone already does.
+     Same markup as the desktop chart: the axis labels and the value on top of
+     each column drop out, the row label and the row value take over, and the
+     bar reads --fill as a width instead of a height. */
+  .chart-columns {
+    display: block;
+    border-bottom: none;
+  }
+
+  .chart-column {
+    display: grid;
+    grid-template-columns: minmax(96px, 140px) 1fr 28px;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+  }
+
+  .chart-row-label {
+    display: block;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chart-column-track {
+    max-width: none;
+    height: 14px;
+    align-items: stretch;
+  }
+
+  .chart-column-fill {
+    width: var(--fill);
+    height: 100%;
+    min-width: 2px;
+    min-height: 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .chart-column-value,
+  .chart-column-label {
+    display: none;
+  }
+
+  .chart-row-value {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart-bars a {
+    grid-template-columns: minmax(96px, 140px) 1fr 28px;
+    gap: 10px;
+  }
+
+  /* Once the map and its numbers stop sharing a line, the map sits alone on
+     its own and belongs in the middle of it */
+  .region-chart {
+    justify-content: center;
+  }
+
+  .region-list li {
+    grid-template-columns: minmax(96px, 140px) 1fr 28px;
+    gap: 10px;
+  }
+
+  .section-header {
+    margin-bottom: 26px;
+  }
+
+  .gallery-grid,
+  .gallery-column {
+    gap: 8px;
+  }
+
+  .gallery-item {
+    border-radius: 4px;
+  }
+
+  .gallery-caption {
+    font-size: 15px;
+    padding: 48px 10px 10px;
+  }
+
+  .hero {
+    min-height: 62vh;
+  }
+
+  .featured-card {
+    aspect-ratio: 4 / 5;
+  }
+
+}
+
+/* Collapse the text links into the hamburger, in both navs. This happens well
+   before the 600px mobile block: with five destinations the row plus the
+   sticky nav's brand runs out of room around the tablet width. */
+@media (max-width: 820px) {
+  .nav-links {
+    display: none;
+  }
+
+  /* The toggle collapses with the links — the drawer carries its own copy */
+  .nav .theme-toggle,
+  .sticky-nav .theme-toggle {
+    display: none;
+  }
+
+  .nav-burger {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-bg {
+    animation: none;
+  }
+
+  .reveal,
+  .reveal-item,
+  .hero-content,
+  .sticky-nav,
+  .nav-links button::after,
+  .gallery-item::before,
+  .gallery-item::after,
+  .gallery-item img,
+  .nav-drawer,
+  .nav-drawer-backdrop {
+    transition: none;
+  }
+}
