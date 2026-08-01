@@ -142,6 +142,17 @@
     border-radius: 8px;
 }
 
+/* ...but the filmstrip reuses .yarl__slide_image for its own images, so the
+   radius above lands on them too — and there the frame is the button around
+   it, which draws the border and already clips to its own 6px. An 8px image
+   inside a 5px clip pulls away from the corners and lets the button's
+   background show through as four pale notches, with the photo and the gold
+   selection ring visibly out of round. The image has no shape of its own to
+   keep here: the button is the shape. */
+.yarl__thumbnails_thumbnail .yarl__slide_image {
+    border-radius: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .slide-blur-up,
     .yarl__slide_image {
@@ -305,10 +316,23 @@
 }
 
 .yarl__thumbnails_thumbnail {
+    /* On-photo furniture like the rest of the lightbox: the filmstrip lies on
+       the blurred photograph in both themes, so it keeps the dark palette
+       instead of the page's. Without this the light theme handed the strip a
+       cream placeholder, a dark hairline that vanished against the backdrop,
+       and the page's deeper bronze as the selection ring, where the dark
+       theme's gold is what actually reads.
+       Note that everything below reads the *channels*, never --surface or
+       --accent: those are computed on :root, so their value is already
+       resolved by the time it inherits down here and restating the channels on
+       this element would not reach them. Only a usage written here does. */
+    --surface-rgb: 19 21 19;
+    --text-rgb: 236 233 226;
+    --accent-rgb: 201 168 106;
     --yarl__thumbnails_thumbnail_border_color: rgb(var(--text-rgb) / 0.18);
-    --yarl__thumbnails_thumbnail_active_border_color: var(--accent);
+    --yarl__thumbnails_thumbnail_active_border_color: rgb(var(--accent-rgb));
     border-radius: 6px;
-    background: var(--surface);
+    background: rgb(var(--surface-rgb));
     opacity: 0.45;
     transition: opacity 0.25s ease, border-color 0.25s ease;
 }
