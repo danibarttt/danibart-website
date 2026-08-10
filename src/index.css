@@ -1403,13 +1403,7 @@ button:focus-visible {
   padding: clamp(90px, 12vw, 140px) 24px 40px;
 }
 
-/* These pages carry no nav bar, so the language toggle rides along with the
-   back link — otherwise there is no way to switch language from /numeri */
 .subpage-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 34px;
 }
 

@@ -2,7 +2,6 @@ import {useEffect} from "react";
 import {Link} from "react-router";
 import {formatDate} from "./i18n.mjs";
 import {useLang} from "./lang";
-import {LangToggle} from "./Toggles";
 
 // These two pages are the one place where the translation is not a dictionary
 // lookup: the prose is long, page-specific and legal, so each page simply
@@ -24,7 +23,6 @@ function PolicyPage({title, children}) {
     <main className="policy">
       <div className="subpage-top">
         <Link className="policy-back" to="/">{t.backToGallery}</Link>
-        <LangToggle/>
       </div>
       <h1 className="policy-title">{title}</h1>
       <p className="policy-updated">

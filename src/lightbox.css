@@ -20,6 +20,12 @@
     --pill: rgb(11 12 11 / 0.34);
     --pill-hover: rgb(11 12 11 / 0.46);
     --pill-active: rgb(11 12 11 / 0.5);
+    /* The library's default button styling is a bare icon over a photo, so
+       it drop-shadows the icon for contrast; ours already sits on a frosted
+       pill with its own box-shadow, so that second shadow just doubled up —
+       an offset-right, offset-down smudge on top of the pill's own edge,
+       most visible against the flatter backgrounds toward the corner. */
+    --yarl__button_filter: none;
 }
 
 /* Stated twice for the same reason as the palette in index.css */
@@ -134,6 +140,31 @@
     object-fit: contain;
 }
 
+/* The HQ toggle's original-quality copy, laid over the regular slide rather
+   than replacing its src (see the comment in Gallery.jsx for why). Unlike
+   .slide-blur-up above, no padding calc to compensate for .yarl__slide's own
+   padding: the Zoom plugin sets an inline transform on .yarl__slide_wrapper,
+   and a transform promotes its element to the containing block for any
+   absolutely positioned descendant — so inset: 0 here resolves against that
+   already-unpadded wrapper, not .yarl__slide. Copying .slide-blur-up's
+   padding verbatim double-subtracted it, insetting the photo a visible ~16px
+   short of the real slide underneath (masked there by the blur and the fade
+   to opacity: 0, but a hard seam on an opaque full-quality photo). pointer-
+   events: none so pinch/double-tap/wheel zoom and the click-to-close handler
+   still reach the real slide underneath it. */
+.slide-hq-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.slide-hq-overlay img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
 /* Soften the fullsize image swap over the blurred placeholder. The corner
    radius matches the one the gallery thumbnails and the /p/ page frame use,
    so the photo keeps the same silhouette wherever it is shown. */
@@ -160,7 +191,13 @@
     }
 }
 
-/* Frosted round toolbar buttons (slideshow, HQ, share, close) */
+/* Frosted round toolbar buttons (HQ, share, close). Desktop keeps the
+   library's default top-right corner: pulling it down to bottom-right there
+   meant clearing the filmstrip below, which left the toolbar floating well
+   above the photo's bottom edge — closer to vertical center than to any
+   corner. Below the mobile breakpoint it moves to bottom-right instead (see
+   the media query below), where that same clearance is a much smaller
+   fraction of the shorter screen. */
 .yarl__toolbar {
     padding: 14px;
     gap: 10px;
@@ -223,6 +260,48 @@
     .yarl__toolbar .yarl__button.lightbox-details {
         padding: 0 13px;
         font-size: 12px;
+    }
+}
+
+/* A standing mode, not a per-photo toggle: once on, every photo swiped to
+   loads its own q100 original in turn. A plain label at rest, a spinner
+   while the current one downloads in the background, a gold highlight
+   throughout once the mode is on. */
+.yarl__toolbar .yarl__button.lightbox-hq {
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Text stays the button's regular light colour rather than matching the gold
+   ring/tint: gold-on-gold read poorly, especially over a pale backdrop where
+   the translucent fill barely darkens it. The ring and the tint alone are
+   the "active" cue; the label just needs to stay legible against them. */
+.yarl__toolbar .yarl__button.lightbox-hq.active {
+    border-color: rgb(201 168 106 / 0.85);
+    background: rgb(201 168 106 / 0.24);
+    color: var(--yarl__color_button);
+}
+
+.lightbox-hq-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgb(236 233 226 / 0.3);
+    border-top-color: rgb(236 233 226 / 0.9);
+    animation: lightbox-hq-spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lightbox-hq-spinner {
+        animation-duration: 1.6s;
+    }
+}
+
+@keyframes lightbox-hq-spin {
+    to {
+        transform: rotate(360deg);
     }
 }
 
@@ -350,6 +429,32 @@
 /* Smaller thumbnails on phones (element-level vars win over the inline
    ones the plugin sets on the container) */
 @media (max-width: 640px) {
+    /* Bottom-right here (see the base rule's comment above); the library's
+       default top/right/bottom/left are 0/0/auto/auto, so only top and
+       bottom need flipping. Unlike the toolbar's own top:0/right:0, this
+       does *not* need to add the filmstrip's height to clear it: the
+       thumbnails plugin makes .yarl__thumbnails_wrapper (flex:1, the
+       carousel area) the toolbar's actual containing block, and that
+       wrapper already stops exactly where the filmstrip begins — so
+       bottom:0 already sits right above it, no double-accounting needed. */
+    .yarl__toolbar {
+        top: auto;
+        bottom: 0;
+    }
+
+    /* The close button stays top-right like on desktop, detached from the
+       bottom-right group above — position: fixed escapes the wrapper's
+       containing block back to the viewport, since nothing between here and
+       the portal sets a transform/filter that would trap it. It is always
+       the last button (see the `buttons` array in Gallery.jsx), so no class
+       or label lookup is needed to single it out. */
+    .yarl__toolbar .yarl__button:last-child {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        bottom: auto;
+    }
+
     .yarl__thumbnails_container {
         width: 402px; /* 5 × (72px + 2px border) + 4 × 8px gap */
         padding: 10px 0 24px;

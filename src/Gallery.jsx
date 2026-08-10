@@ -14,7 +14,6 @@ import {Link, useNavigate, useLocation} from "react-router";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import "yet-another-react-lightbox/plugins/thumbnails.css";
-import Slideshow from "yet-another-react-lightbox/plugins/slideshow";
 import photos from "./photos";
 import {HERO_LARGE_QUERY, resolveHeroes} from "./hero.mjs";
 import {photoDescription, photoPath, photoTitle} from "./i18n.mjs";
@@ -84,6 +83,9 @@ function useHeroPhoto() {
 // the first column instead of spread across the top row.
 // The breakpoint must match the .gallery-column width rule in index.css.
 const GALLERY_TWO_COL_QUERY = "(max-width: 1000px)";
+// How long a photo has to stay current before HQ starts fetching its
+// original — long enough that a swipe-through never triggers one
+const HQ_SETTLE_DELAY = 400;
 
 function useGalleryColumnCount() {
   const [count, setCount] = useState(
@@ -711,6 +713,7 @@ function Contacts() {
 // memoized on the filtered photo list, so a new identity is produced only
 // when the filters actually change — never mid-swipe.
 const toSlide = (photo) => ({
+  id: photo.id,
   src: photo.src,
   // Downscaled renditions: phones fetch ~1280px instead of the multi-MB
   // full-resolution photo, which took seconds per swipe on cellular
@@ -722,6 +725,8 @@ const toSlide = (photo) => ({
   // downloaded, so the filmstrip and blur-up hit the browser cache
   thumbnail: photo.thumbnailWebp ?? photo.thumbnail,
   blur: photo.blur,
+  // The q100 copy the HQ toolbar button lays over this slide once loaded
+  original: photo.original,
 });
 
 // Fullscreen ambient backdrop for the lightbox: the current photo's tiny
@@ -775,7 +780,7 @@ function LightboxBackdrop({photo}) {
 // Blur-up for the lightbox: while the fullsize photo downloads, show the
 // thumbnail hyper-blurred (stacked over the inline base64 placeholder, which
 // paints instantly), then fade it out once the real image is in
-function BlurUpSlide({slide, offset, rect, onClick}) {
+function BlurUpSlide({slide, offset, rect, onClick, hqSrc}) {
   const [loaded, setLoaded] = useState(false);
   // Unmount the blurred layers once faded out: leaving them at opacity 0
   // keeps a fullscreen filtered layer alive per mounted slide, which drags
@@ -808,6 +813,17 @@ function BlurUpSlide({slide, offset, rect, onClick}) {
         // Never let a still-decoding neighbor image block the swipe's paint
         imageProps={{decoding: "async"}}
       />
+      {hqSrc && (
+        // A plain overlay, not a swapped slide.src: yarl/Zoom track the
+        // ImageSlide's own <img> for gesture and navigation state, and
+        // handing that element a new src mid-flight was found to silently
+        // break arrow-key navigation. Sitting inside the same
+        // yarl__slide_wrapper the Zoom plugin transforms means it pans and
+        // scales together with the image underneath despite being untracked.
+        <div className="slide-hq-overlay" aria-hidden="true">
+          <img src={hqSrc} alt=""/>
+        </div>
+      )}
     </>
   );
 }
@@ -817,6 +833,28 @@ export default function Gallery() {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentPhotoId, setCurrentPhotoId] = useState(null);
+  // The HQ toolbar button is a standing mode, not a per-photo choice: once on,
+  // every photo the visitor swipes to loads its q100 original in turn, until
+  // switched back off. hqEnabled is that mode; hq tracks the load this mode
+  // is currently running, {photoId, status: "loading" | "loaded"}, so a
+  // still-loading request can be told apart from a finished one and matched
+  // back to the photo it was for.
+  const [hqEnabled, setHqEnabled] = useState(false);
+  const [hq, setHq] = useState(null);
+  // Bumped whenever the effect below starts a fresh decision (new photo, or
+  // the mode flipped) so a load still in flight when either happens can't
+  // land its result late and silently swap the image in behind the visitor.
+  const hqRequestId = useRef(0);
+  // Separate from hq.status: a fast (likely cached) load shouldn't flash a
+  // spinner for a couple of frames, so the button only switches to it once
+  // loading has visibly taken a while.
+  const [hqSpinnerVisible, setHqSpinnerVisible] = useState(false);
+  const hqSpinnerTimer = useRef(null);
+  // Fetching the original is deferred until the visitor has settled on a
+  // photo, so swiping through several in a row scrolls on the same optimized
+  // slide HQ-off does, instead of racing a multi-MB request per photo passed.
+  const hqLoadTimer = useRef(null);
+  const hqImage = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shareToast, setShareToast] = useState(null);
   const shareToastTimer = useRef(null);
@@ -891,13 +929,37 @@ export default function Gallery() {
 
   useEffect(() => () => clearTimeout(shareToastTimer.current), []);
 
+  // Read by the stable-identity renderLightbox below instead of closing over
+  // hq directly — the same trick as locationRef, and for the same reason: a
+  // new render object identity makes yarl re-run its own setup internally
+  // (that's how it lost keyboard navigation the first time this was tried),
+  // so the slide callback must stay the same function and just read current
+  // state off a ref. Gallery re-rendering on setHq is what gets yarl to call
+  // it again — no dependency on hq's identity required.
+  const hqRef = useRef(hq);
+  hqRef.current = hq;
+
   // Stable identity: a new render function each Gallery render (which happens
-  // per swipe for the URL sync) would make yarl re-render every mounted slide
+  // per swipe for the URL sync, and on every HQ state change) would make yarl
+  // re-render every mounted slide — see hqRef above for how the HQ swap still
+  // reaches this without hq in the dependency array.
   const renderLightbox = useMemo(
     () => ({
-      slide: ({slide, offset, rect}) => (
-        <BlurUpSlide slide={slide} offset={offset} rect={rect}/>
-      ),
+      slide: ({slide, offset, rect}) => {
+        const hq = hqRef.current;
+        // offset === 0 is the on-screen slide; a preloading neighbor never
+        // shows the HQ copy, so swiping past it doesn't drag the toggle along
+        const showHq =
+          offset === 0 && hq?.status === "loaded" && hq.photoId === slide.id;
+        return (
+          <BlurUpSlide
+            slide={slide}
+            offset={offset}
+            rect={rect}
+            hqSrc={showHq ? slide.original : undefined}
+          />
+        );
+      },
       // Drops the Zoom plugin's +/- toolbar buttons without dropping the
       // plugin: pinch, double-tap, wheel and the arrow keys still zoom
       buttonZoom: () => null,
@@ -933,8 +995,8 @@ export default function Gallery() {
     }
   };
 
-  // The HQ button lands on the photo's own /p/ page, which shows the shot at
-  // full resolution (in dev too — see the static-pages-dev plugin)
+  // The Details button lands on the photo's own /p/ page, which shows the
+  // shot at full resolution (in dev too — see the static-pages-dev plugin)
   const openHighDefinition = (photo) => {
     window.location.href = photoPath(photo.id, lang);
   };
@@ -1012,6 +1074,73 @@ export default function Gallery() {
   );
 
   const currentIndex = lightboxPhotos.findIndex((p) => p.id === currentPhotoId);
+  const currentPhoto = currentIndex >= 0 ? lightboxPhotos[currentIndex] : null;
+  const hqStatus = hq && currentPhoto && hq.photoId === currentPhoto.id ? hq.status : "idle";
+
+  // Runs whenever the mode is flipped or the visitor lands on a different
+  // photo while it's on — a plain click no longer starts a load itself, this
+  // is the one place that does, so HQ following the visitor from photo to
+  // photo and HQ turned on for the photo already open are the same code path.
+  useEffect(() => {
+    const requestId = ++hqRequestId.current;
+    clearTimeout(hqSpinnerTimer.current);
+    clearTimeout(hqLoadTimer.current);
+    setHqSpinnerVisible(false);
+    // A photo left mid-fetch keeps downloading otherwise, competing with the
+    // request for wherever the visitor actually landed
+    if (hqImage.current) {
+      hqImage.current.onload = null;
+      hqImage.current.onerror = null;
+      hqImage.current.src = "";
+      hqImage.current = null;
+    }
+
+    if (!hqEnabled || !currentPhoto) {
+      setHq(null);
+      return;
+    }
+
+    setHq({photoId: currentPhoto.id, status: "loading"});
+    // The original is only fetched once the photo has stuck for a moment —
+    // a quick swipe through several should look identical to HQ being off
+    hqLoadTimer.current = setTimeout(() => {
+      if (hqRequestId.current !== requestId) return;
+      // A cached or fast original shouldn't flash a spinner for one frame —
+      // only shown once loading has visibly taken a while
+      hqSpinnerTimer.current = setTimeout(() => {
+        if (hqRequestId.current === requestId) setHqSpinnerVisible(true);
+      }, 1000);
+      const img = new Image();
+      hqImage.current = img;
+      img.onload = () => {
+        if (hqRequestId.current !== requestId) return;
+        clearTimeout(hqSpinnerTimer.current);
+        setHqSpinnerVisible(false);
+        setHq({photoId: currentPhoto.id, status: "loaded"});
+      };
+      img.onerror = () => {
+        if (hqRequestId.current !== requestId) return;
+        clearTimeout(hqSpinnerTimer.current);
+        setHqSpinnerVisible(false);
+        setHq(null);
+      };
+      img.src = currentPhoto.original;
+    }, HQ_SETTLE_DELAY);
+
+    // Unmounting (e.g. navigating to /specie or /numeri) doesn't re-run the
+    // effect body above, so the pending timers and any in-flight fetch need
+    // their own cancellation here rather than relying on that guard
+    return () => {
+      clearTimeout(hqLoadTimer.current);
+      clearTimeout(hqSpinnerTimer.current);
+      if (hqImage.current) {
+        hqImage.current.onload = null;
+        hqImage.current.onerror = null;
+        hqImage.current.src = "";
+        hqImage.current = null;
+      }
+    };
+  }, [currentPhoto?.id, hqEnabled]);
 
   return (
     <div>
@@ -1084,7 +1213,7 @@ export default function Gallery() {
           // in-flight fullsize downloads.
           carousel={{preload: 2}}
           render={renderLightbox}
-          plugins={[Zoom, Thumbnails, Slideshow]}
+          plugins={[Zoom, Thumbnails]}
           open={true}
           close={closeLightbox}
           index={currentIndex}
@@ -1098,16 +1227,13 @@ export default function Gallery() {
             closeOnPullUp: false,
             closeOnEscape: false,
           }}
-          // The Slideshow plugin replaces the "slideshow" placeholder in place;
-          // without it in the array its button would be prepended, landing on
-          // the wrong side of the toolbar
           toolbar={{
             buttons: [
               // Worded rather than an icon: it is the one control that leaves
               // the lightbox, and no glyph said so. The arrow carries the
               // "opens another page" part.
               <button
-                key="hq"
+                key="details"
                 type="button"
                 className="yarl__button lightbox-details"
                 title={t.lightboxDetailsTitle}
@@ -1129,7 +1255,25 @@ export default function Gallery() {
                   <path d="M6.5 17.5 17.5 6.5M9.5 6.5h8v8"/>
                 </svg>
               </button>,
-              "slideshow",
+              // A standing mode, not a per-photo choice — once on, every photo
+              // the visitor swipes to loads its own q100 original in turn (see
+              // the effect above); no navigation, unlike "details" above
+              <button
+                key="hq"
+                type="button"
+                className={`yarl__button lightbox-hq${hqEnabled ? " active" : ""}`}
+                title={hqEnabled ? t.lightboxHqActiveTitle : t.lightboxHqTitle}
+                aria-label={hqEnabled ? t.lightboxHqActiveAria : t.lightboxHqAria}
+                aria-pressed={hqEnabled}
+                aria-busy={hqStatus === "loading"}
+                onClick={() => setHqEnabled((enabled) => !enabled)}
+              >
+                {hqStatus === "loading" && hqSpinnerVisible ? (
+                  <span className="lightbox-hq-spinner" aria-hidden="true"/>
+                ) : (
+                  <span aria-hidden="true">HQ</span>
+                )}
+              </button>,
               <button
                 key="share"
                 type="button"
@@ -1164,17 +1308,12 @@ export default function Gallery() {
             imageFit: "cover",
             vignette: false,
           }}
-          // 5s per photo: long enough to actually look at one, short enough
-          // that the whole catalog is not an evening's commitment
-          slideshow={{autoplay: false, delay: 5000}}
           // yarl ships its own English labels, which are neither the wording
           // used here nor any use at all on the Italian site
           labels={{
             Previous: t.lightboxPrevious,
             Next: t.lightboxNext,
             Close: t.lightboxClose,
-            Play: t.lightboxPlay,
-            Pause: t.lightboxPause,
           }}
           on={{
             view: ({index}) => {

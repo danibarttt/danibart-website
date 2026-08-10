@@ -123,7 +123,6 @@ const IT = {
   themeToDark: "Passa al tema scuro",
   themeLight: "Tema chiaro",
   themeDark: "Tema scuro",
-  themeChange: "Cambia tema",
   // Worded in the language it switches *to*: the visitor who needs this button
   // is by definition the one who cannot read the current language
   langSwitch: "Switch to English",
@@ -192,6 +191,11 @@ const IT = {
   lightboxDetails: "Dettagli",
   lightboxDetailsTitle: "Apri la scheda della foto",
   lightboxDetailsAria: "Apri la scheda della foto, in alta definizione",
+  lightboxHqTitle: "Mostra tutte le foto in qualità originale",
+  lightboxHqAria: "Mostra tutte le foto della galleria in qualità originale",
+  lightboxHqActiveTitle: "Torna alla qualità ottimizzata",
+  lightboxHqActiveAria:
+    "Qualità originale attiva per tutte le foto: torna alla versione ottimizzata",
   lightboxShare: "Condividi",
   lightboxShareAria: "Condividi la foto",
   lightboxLinkCopied: "Link copiato negli appunti",
@@ -199,8 +203,6 @@ const IT = {
   lightboxPrevious: "Precedente",
   lightboxNext: "Successiva",
   lightboxClose: "Chiudi",
-  lightboxPlay: "Avvia la presentazione",
-  lightboxPause: "Metti in pausa la presentazione",
 
   backToGallery: "← Torna alla galleria",
 
@@ -330,7 +332,6 @@ const EN = {
   themeToDark: "Switch to dark theme",
   themeLight: "Light theme",
   themeDark: "Dark theme",
-  themeChange: "Change theme",
   langSwitch: "Passa all'italiano",
   langSwitchName: "Italiano",
   langCode: "IT",
@@ -397,6 +398,11 @@ const EN = {
   lightboxDetails: "Details",
   lightboxDetailsTitle: "Open the photo's own page",
   lightboxDetailsAria: "Open the photo's own page, in high resolution",
+  lightboxHqTitle: "Show every photo in original quality",
+  lightboxHqAria: "Show every photo in the lightbox in its original quality",
+  lightboxHqActiveTitle: "Back to optimized quality",
+  lightboxHqActiveAria:
+    "Original quality on for every photo: back to the optimized version",
   lightboxShare: "Share",
   lightboxShareAria: "Share the photo",
   lightboxLinkCopied: "Link copied to clipboard",
@@ -404,8 +410,6 @@ const EN = {
   lightboxPrevious: "Previous",
   lightboxNext: "Next",
   lightboxClose: "Close",
-  lightboxPlay: "Start the slideshow",
-  lightboxPause: "Pause the slideshow",
 
   backToGallery: "← Back to the gallery",
 

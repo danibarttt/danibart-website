@@ -12,10 +12,11 @@
 //
 // The Italian pages keep the URLs they have always had — ids and species slugs
 // are unchanged — and English hangs off an /en/ prefix, with the two halves
-// pointing at each other through rel="alternate" hreflang and a switch in the
-// header. The SPA itself has no per-language URL: there the language is a
-// stored preference like the theme (src/i18n.mjs), so the links back into the
-// gallery are the same from both halves.
+// pointing at each other through rel="alternate" hreflang. The SPA itself has
+// no per-language URL: there the language is a stored preference like the
+// theme (src/i18n.mjs), so the links back into the gallery are the same from
+// both halves. Neither the language nor the theme switch is shown on this
+// static surface — only the homepage carries them, see CLAUDE.md.
 //
 // The photo pages used to be redirect stubs that bounced into the SPA deep
 // link. They are real pages now: a redirect is not indexable, and the static
@@ -261,7 +262,9 @@ const assetFor = relPath => {
 
 const thumbUrl = (photo, ext) => assetFor(`thumbnails/${photo.filename}${ext}`);
 const slideUrl = (photo, width) => assetFor(`slides/${photo.filename}-${width}.jpg`);
-const fullSizeUrl = photo => assetFor(`fullsize/${photo.filename}.jpg`);
+// Same pixel dimensions as fullsize/, just re-encoded at q100 instead of q90 —
+// the highest quality copy the site has, reserved for this page (see below).
+const originalUrl = photo => assetFor(`original/${photo.filename}.jpg`);
 
 // The Open Graph / Google Images copy is published under a descriptive name
 // rather than the camera's "IMG_6229.jpg": the filename is one of the (weak)
@@ -305,12 +308,8 @@ const PAGE_CSS = `
 *{box-sizing:border-box}
 /* Same as src/index.css: the default mobile tap flash is blue and belongs to
    no theme here. It is inherited, so one declaration covers every link and
-   button on the page — except the round toggles, whose flash would be painted
-   as a square regardless of their radius, so they opt out and get the tint
-   back as an :active background instead. */
+   button on the page. */
 html{-webkit-tap-highlight-color:rgb(var(--accent-rgb) / .15)}
-.toggle{-webkit-tap-highlight-color:transparent}
-.toggle:active{background:rgb(var(--accent-rgb) / .15)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased}
 a{color:inherit}
 img{max-width:100%;height:auto;display:block}
@@ -385,56 +384,25 @@ h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4.5vw,46px);lin
 .prose p{margin:0 0 14px}
 footer{border-top:1px solid rgb(var(--text-rgb) / .12);margin-top:56px;padding-top:22px;color:var(--muted);font-size:13px}
 footer a{color:var(--muted)}
-/* The two preference controls, mirroring .theme-toggle / .lang-toggle in
-   src/index.css. The language one is an anchor rather than a button — the
-   counterpart page is a real URL, so it should work without the script and be
-   followable by a crawler. */
-.toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex:none;padding:0;border:1px solid rgb(var(--text-rgb) / .22);border-radius:50%;background:none;color:var(--text);text-decoration:none;cursor:pointer;opacity:.85;transition:opacity .2s ease,color .2s ease,border-color .2s ease}
-.toggle:hover{opacity:1;color:var(--accent);border-color:var(--accent)}
-.lang-toggle{font-size:12px;font-weight:600;letter-spacing:.02em}
-/* Which glyph shows is pure CSS, so the icon is right on the very first paint
-   — only the label needs the script below */
-.theme-toggle .moon{display:none}
-:root[data-theme="light"] .theme-toggle .moon{display:block}
-:root[data-theme="light"] .theme-toggle .sun{display:none}
-@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .theme-toggle .moon{display:block}:root:not([data-theme="dark"]) .theme-toggle .sun{display:none}}
 /* The nav wraps under the brand on narrow screens, and the flex gap doubles as
    the row gap — 16px left the links sitting on top of the name */
 @media(max-width:600px){.pager picture{display:none}.pager a{max-width:46%}.top{gap:22px 16px}}
 `.trim();
 
-const SUN_ICON = `<svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg>`;
-const MOON_ICON = `<svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>`;
-
-const themeToggleHtml = lang =>
-  `<button class="toggle theme-toggle" type="button" aria-label="${escapeHtml(
-    strings(lang).themeChange
-  )}">${SUN_ICON}${MOON_ICON}</button>`;
-
-// The other language's copy of this very page. An <a href> rather than a
-// button: the counterpart is a real URL, so it works with the script blocked
-// and gives a crawler a second path to the translation (rel="alternate" in the
-// head is the first). LANG_SCRIPT only adds the "remember this" half.
-const langToggleHtml = (lang, paths) => {
-  const next = LANGS.find(other => other !== lang);
-  const t = strings(lang);
-  return `<a class="toggle lang-toggle" href="${paths[next]}" hreflang="${next}" lang="${next}" data-lang="${next}" title="${escapeHtml(
-    t.langSwitch
-  )}" aria-label="${escapeHtml(t.langSwitch)}">${t.langCode}</a>`;
-};
-
-const nav = ({ lang, paths, themeToggle = true }) => {
+// No language or theme switch here — that pair only lives on the homepage
+// nav, see CLAUDE.md. This nav is plain links, and the language stays
+// reachable through rel="alternate" hreflang in the head instead.
+const nav = lang => {
   const t = strings(lang);
   return `<nav><a href="/">${t.navGallery}</a><a href="${speciesIndexPath(lang)}">${
     t.navSpecies
-  }</a><a href="/#/numeri">${t.navNumbers}</a>${langToggleHtml(lang, paths)}${
-    themeToggle ? themeToggleHtml(lang) : ""
-  }</nav>`;
+  }</a><a href="/#/numeri">${t.navNumbers}</a></nav>`;
 };
 
-// Mirrors src/theme.mjs, inlined because these pages load no bundle. The first
-// half runs before the stylesheet so an overridden theme never flashes; the
-// listener is wired up at the end of the body.
+// Mirrors src/theme.mjs, inlined because these pages load no bundle. There is
+// no toggle button here to wire up afterwards — this alone is what makes a
+// stored (or device) preference apply, and an overridden theme never flashes
+// because it runs before the stylesheet.
 const THEME_BOOT = `<script>
 (function(){
   var d=document.documentElement;
@@ -443,48 +411,6 @@ const THEME_BOOT = `<script>
   d.style.background=light?"#f6f4ef":"#0b0c0b";
   var m=document.querySelector('meta[name="theme-color"]');
   if(m&&light)m.setAttribute("content","#f6f4ef");
-})();
-</script>`;
-
-const themeScript = lang => {
-  const t = strings(lang);
-  return `<script>
-(function(){
-  var d=document.documentElement,b=document.querySelector(".theme-toggle");
-  if(!b)return;
-  var sys=function(){return matchMedia("(prefers-color-scheme:light)").matches?"light":"dark"};
-  var now=function(){return d.getAttribute("data-theme")||sys()};
-  var label=function(){b.setAttribute("aria-label",now()==="dark"?${JSON.stringify(
-    t.themeToLight
-  )}:${JSON.stringify(t.themeToDark)});b.title=b.getAttribute("aria-label")};
-  b.addEventListener("click",function(){
-    var next=now()==="dark"?"light":"dark";
-    try{next===sys()?localStorage.removeItem("theme"):localStorage.setItem("theme",next)}catch(e){}
-    next===sys()?d.removeAttribute("data-theme"):d.setAttribute("data-theme",next);
-    var m=document.querySelector('meta[name="theme-color"]');
-    if(m)m.setAttribute("content",next==="light"?"#f6f4ef":"#0b0c0b");
-    d.style.background=next==="light"?"#f6f4ef":"#0b0c0b";
-    label();
-  });
-  matchMedia("(prefers-color-scheme:light)").addEventListener("change",label);
-  label();
-})();
-</script>`;
-};
-
-// The link already navigates on its own; this only records the choice, with
-// the same "store it only if it differs from the browser" rule as setLang in
-// src/i18n.mjs, so the SPA and the rest of the static surface follow along.
-const LANG_SCRIPT = `<script>
-(function(){
-  var a=document.querySelector(".lang-toggle");
-  if(!a)return;
-  a.addEventListener("click",function(){
-    var next=a.getAttribute("data-lang");
-    var tags=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language];
-    var sys=String(tags[0]||"").toLowerCase().indexOf("it")===0?"it":"en";
-    try{next===sys?localStorage.removeItem("lang"):localStorage.setItem("lang",next)}catch(e){}
-  });
 })();
 </script>`;
 
@@ -506,9 +432,9 @@ const footerHtml = lang => {
 };
 
 // paths: the same page in every language, keyed by language. It backs the
-// canonical URL, the hreflang alternates and the switch in the header, so the
-// three can never point somewhere different from each other.
-const layout = ({ lang, title, description, paths, head = "", body, themeToggle = true }) => {
+// canonical URL and the hreflang alternates, so the two can never point
+// somewhere different from each other.
+const layout = ({ lang, title, description, paths, head = "", body }) => {
   const t = strings(lang);
   const alternates = LANGS.map(
     other =>
@@ -545,13 +471,11 @@ ${head}    <style>${PAGE_CSS}</style>
     <div class="wrap">
       <div class="top">
         <a class="brand" href="/">Daniele Bartorilla</a>
-        ${nav({ lang, paths, themeToggle })}
+        ${nav(lang)}
       </div>
 ${body}
 ${footerHtml(lang)}
     </div>
-    ${themeScript(lang)}
-    ${LANG_SCRIPT}
   </body>
 </html>
 `;
@@ -675,15 +599,19 @@ function buildPhotoPages(lang) {
       : "";
 
     // This page is where the lightbox's HQ button lands, so it shows the photo
-    // at full resolution rather than a screen-sized rendition. The smaller
-    // slides stay in the srcSet as the low end — a phone has no use for a 24MP
-    // file — with `sizes` claiming the full viewport width so a wide screen
-    // picks the full-size one. The multi-MB download is the point of the page,
-    // and it is progressive JPEG, so it paints in passes over the blurred
-    // placeholder instead of appearing all at once.
+    // at its highest available quality — the q100 original, not the q90
+    // fullsize rendition used everywhere else on the site (gallery, hero,
+    // lightbox slides), which trades a little quality for a much smaller
+    // download on views the visitor didn't ask to see at full size. The
+    // smaller slides stay in the srcSet as the low end — a phone has no use
+    // for a 24MP file — with `sizes` claiming the full viewport width so a
+    // wide screen picks the original. The multi-MB download is the point of
+    // the page, and it is progressive JPEG, so it paints in passes over the
+    // blurred placeholder (`--blur`, set below) instead of appearing all at
+    // once.
     const wide = slideUrl(photo, 2048);
     const narrow = slideUrl(photo, 1280);
-    const full = fullSizeUrl(photo);
+    const full = originalUrl(photo);
     const srcset = [
       narrow && `${narrow} 1280w`,
       wide && `${wide} 2048w`,
@@ -843,13 +771,6 @@ ${imageSize}    <meta property="og:image:alt" content="${escapeHtml(altOf(photo,
         paths,
         head,
         body,
-        // The photo pages leave the theme toggle out: they are the landing page
-        // for a shared link, and the photograph is the only thing that should
-        // compete for attention there. The language switch stays — a page in a
-        // language you cannot read is not a landing page at all. themeScript is
-        // a no-op without the button, and the theme still follows the stored
-        // preference (or the device) via THEME_BOOT.
-        themeToggle: false,
       })
     );
   }
