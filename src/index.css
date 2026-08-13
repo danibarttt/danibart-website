@@ -1055,6 +1055,12 @@ button:focus-visible {
   aspect-ratio: 16 / 9;
 }
 
+/* Higher specificity than any viewport's .featured-card rule, so it wins at
+   every breakpoint without needing to be restated per media query */
+.featured-card.portrait {
+  aspect-ratio: 3 / 4;
+}
+
 .featured-placeholder {
   position: absolute;
   inset: 0;

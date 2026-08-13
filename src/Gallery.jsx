@@ -478,6 +478,9 @@ function Featured({onOpen}) {
   const bannerSrc = photo.srcSet[0]?.src ?? photo.src;
   const title = photoTitle(photo, lang);
   const description = photoDescription(photo, lang);
+  // The card's default box is landscape (16:9); a portrait photo cover-cropped
+  // into that shape loses most of the frame, so it gets a taller box instead
+  const isPortrait = photo.width && photo.height && photo.height > photo.width;
 
   return (
     <section
@@ -489,7 +492,7 @@ function Featured({onOpen}) {
         <h2 className="section-title">{t.featuredTitle}</h2>
       </div>
       <div
-        className="featured-card"
+        className={`featured-card${isPortrait ? " portrait" : ""}`}
         onClick={() => onOpen(photo.id)}
         onKeyDown={(e) => e.key === "Enter" && onOpen(photo.id)}
         tabIndex={0}
