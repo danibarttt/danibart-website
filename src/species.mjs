@@ -33,6 +33,7 @@ const SPECIES_IT = {
   "Psittacula krameri": "Parrocchetto dal collare",
   "Streptopelia turtur": "Tortora selvatica",
   "Threskiornis aethiopicus": "Ibis sacro",
+  "Phoenicopterus ruber": "Fenicottero Rosso"
 };
 
 // Sentence case like the Italian names above, not the initial-capped form
@@ -54,6 +55,7 @@ const SPECIES_EN = {
   "Psittacula krameri": "Rose-ringed parakeet",
   "Streptopelia turtur": "European turtle dove",
   "Threskiornis aethiopicus": "African sacred ibis",
+  "Phoenicopterus ruber": "American flamingo"
 };
 
 const NAMES = { it: SPECIES_IT, en: SPECIES_EN };
