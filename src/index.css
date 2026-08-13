@@ -1056,9 +1056,17 @@ button:focus-visible {
 }
 
 /* Higher specificity than any viewport's .featured-card rule, so it wins at
-   every breakpoint without needing to be restated per media query */
+   every breakpoint without needing to be restated per media query. The section
+   is fixed-width, so a full-width 3:4 box towers over the viewport on desktop;
+   capping the width to what a 78vh-tall box would need (78vh * 3/4, same cap
+   the /p/ page uses) shrinks both dimensions together and keeps the ratio,
+   rather than clipping height alone and drifting away from 3:4. Below that cap
+   (narrow/mobile viewports) it's still just the section's own width, same as
+   before this rule existed. */
 .featured-card.portrait {
   aspect-ratio: 3 / 4;
+  max-width: 58.5vh;
+  margin: 0 auto;
 }
 
 .featured-placeholder {
