@@ -29,6 +29,7 @@ const GENERATOR = "src/generate-static-pages.mjs";
 // the dev server runs therefore shows up on the next reload.
 const INPUTS = [
   "photos.json",
+  "species.json",
   "generated_photos/metadata.json",
   GENERATOR,
   "src/hero.mjs",

@@ -1,0 +1,87 @@
+[
+  {
+    "latin": "Actitis hypoleucos",
+    "it": "Piro piro piccolo",
+    "en": "Common sandpiper"
+  },
+  {
+    "latin": "Anser anser",
+    "it": "Oca selvatica",
+    "en": "Greylag goose"
+  },
+  {
+    "latin": "Ardea alba",
+    "it": "Airone bianco maggiore",
+    "en": "Great egret"
+  },
+  {
+    "latin": "Ardea cinerea",
+    "it": "Airone cenerino",
+    "en": "Grey heron"
+  },
+  {
+    "latin": "Ardea purpurea",
+    "it": "Airone rosso",
+    "en": "Purple heron"
+  },
+  {
+    "latin": "Bubulcus ibis",
+    "it": "Airone guardabuoi",
+    "en": "Cattle egret"
+  },
+  {
+    "latin": "Ciconia ciconia",
+    "it": "Cicogna",
+    "en": "White stork"
+  },
+  {
+    "latin": "Cygnus olor",
+    "it": "Cigno reale",
+    "en": "Mute swan"
+  },
+  {
+    "latin": "Egretta garzetta",
+    "it": "Garzetta",
+    "en": "Little egret"
+  },
+  {
+    "latin": "Gallinula chloropus",
+    "it": "Gallinella d'acqua",
+    "en": "Common moorhen"
+  },
+  {
+    "latin": "Merops apiaster",
+    "it": "Gruccione",
+    "en": "European bee-eater"
+  },
+  {
+    "latin": "Nycticorax nycticorax",
+    "it": "Nitticora",
+    "en": "Black-crowned night heron"
+  },
+  {
+    "latin": "Phalacrocorax carbo",
+    "it": "Cormorano",
+    "en": "Great cormorant"
+  },
+  {
+    "latin": "Phoenicopterus ruber",
+    "it": "Fenicottero rosso",
+    "en": "American flamingo"
+  },
+  {
+    "latin": "Psittacula krameri",
+    "it": "Parrocchetto dal collare",
+    "en": "Rose-ringed parakeet"
+  },
+  {
+    "latin": "Streptopelia turtur",
+    "it": "Tortora selvatica",
+    "en": "European turtle dove"
+  },
+  {
+    "latin": "Threskiornis aethiopicus",
+    "it": "Ibis sacro",
+    "en": "African sacred ibis"
+  }
+]

@@ -65,7 +65,18 @@ if (renamed.length > 0) {
   }
 }
 
-// A species src/species.mjs has no name for stops the run here, before any
+// species.json is kept in Latin alphabetical order the same way photos.json is
+// kept in date order: rewritten here if an entry was appended out of place, so
+// a new species can go at the bottom without anyone hunting for its slot.
+const speciesPath = path.join(__dirname, "..", "species.json");
+const speciesList = require(speciesPath);
+const speciesSorted = [...speciesList].sort((a, b) => a.latin.localeCompare(b.latin));
+if (speciesSorted.some((entry, i) => entry !== speciesList[i])) {
+  fs.writeFileSync(speciesPath, JSON.stringify(speciesSorted, null, 2) + "\n");
+  console.log("Sorted species.json by Latin name");
+}
+
+// A species species.json has no name for stops the run here, before any
 // rendition or page exists — see auditSpecies for why it is not a warning.
 // This is the earliest either dev or build can catch it: both start with this
 // script, and the message says exactly what to paste.

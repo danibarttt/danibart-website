@@ -1,6 +1,11 @@
 // Single source of truth for species naming, shared by the app (Gallery.jsx,
 // SpeciesIndex.jsx) and the post-build static page generator. photos.json
 // stores only the Latin name, so everything user-facing goes through here.
+//
+// The names themselves live in species.json at the repo root, one entry per
+// species ({latin, it, en}), next to the photo manifest they describe. The
+// import attribute is what lets node load it; vite accepts it as well.
+import SPECIES from "../species.json" with { type: "json" };
 
 // Some entries list more than one species ("Egretta garzetta · Threskiornis
 // aethiopicus") — split so each name is handled on its own. "·" is the
@@ -17,48 +22,18 @@ export const SPECIES_SEPARATOR = " · ";
 // The spelling generate-photos.js writes back into photos.json
 export const canonicalSpecies = species => splitSpecies(species).join(SPECIES_SEPARATOR);
 
-const SPECIES_IT = {
-  "Actitis hypoleucos": "Piro piro piccolo",
-  "Anser anser": "Oca selvatica",
-  "Ardea alba": "Airone bianco maggiore",
-  "Ardea cinerea": "Airone cenerino",
-  "Ardea purpurea": "Airone rosso",
-  "Bubulcus ibis": "Airone guardabuoi",
-  "Ciconia ciconia": "Cicogna",
-  "Egretta garzetta": "Garzetta",
-  "Gallinula chloropus": "Gallinella d'acqua",
-  "Merops apiaster": "Gruccione",
-  "Nycticorax nycticorax": "Nitticora",
-  "Phalacrocorax carbo": "Cormorano",
-  "Psittacula krameri": "Parrocchetto dal collare",
-  "Streptopelia turtur": "Tortora selvatica",
-  "Threskiornis aethiopicus": "Ibis sacro",
-  "Phoenicopterus ruber": "Fenicottero Rosso"
-};
-
-// Sentence case like the Italian names above, not the initial-capped form
-// ornithology uses ("Grey Heron"): these run inside chips, captions and
-// sentences, where the capitals would read as shouting.
-const SPECIES_EN = {
-  "Actitis hypoleucos": "Common sandpiper",
-  "Anser anser": "Greylag goose",
-  "Ardea alba": "Great egret",
-  "Ardea cinerea": "Grey heron",
-  "Ardea purpurea": "Purple heron",
-  "Bubulcus ibis": "Cattle egret",
-  "Ciconia ciconia": "White stork",
-  "Egretta garzetta": "Little egret",
-  "Gallinula chloropus": "Common moorhen",
-  "Merops apiaster": "European bee-eater",
-  "Nycticorax nycticorax": "Black-crowned night heron",
-  "Phalacrocorax carbo": "Great cormorant",
-  "Psittacula krameri": "Rose-ringed parakeet",
-  "Streptopelia turtur": "European turtle dove",
-  "Threskiornis aethiopicus": "African sacred ibis",
-  "Phoenicopterus ruber": "American flamingo"
-};
-
-const NAMES = { it: SPECIES_IT, en: SPECIES_EN };
+// Keyed by language, then by Latin name. Names are written in sentence case in
+// both languages, not the initial-capped form ornithology uses ("Grey Heron"):
+// they run inside chips, captions and sentences, where the capitals would read
+// as shouting. An empty string counts as missing.
+const NAMES = { it: {}, en: {} };
+for (const { latin, ...names } of SPECIES) {
+  for (const lang of Object.keys(NAMES)) {
+    if (names[lang]) NAMES[lang][latin] = names[lang];
+  }
+}
+const SPECIES_IT = NAMES.it;
+const SPECIES_EN = NAMES.en;
 
 // A species with no entry above falls back to its Latin name, so adding a
 // photo of an unlisted bird degrades to something correct rather than blank —
@@ -76,7 +51,8 @@ const slugify = name =>
 
 // The canonical, language-independent slug: derived from the Italian name and
 // baked into both the /s/<slug>/ URLs and the gallery's ?specie= parameter, so
-// renaming a species here breaks the old one — same caveat as photo-id.mjs.
+// renaming a species in species.json breaks the old one — same caveat as
+// photo-id.mjs.
 // The English pages keep using it for their filter links, where it is an
 // opaque id rather than a word anyone reads.
 export const speciesSlug = latin => slugify(commonName(latin, "it"));
@@ -88,7 +64,7 @@ export const speciesSlugFor = (latin, lang) => slugify(commonName(latin, lang));
 
 /* ---------- manifest audit ---------- */
 
-// Which species photos.json names that the maps above have no entry for.
+// Which species photos.json names that species.json has no name for.
 // Run by generate-photos.js — the first thing both dev and build execute — and
 // again by the static page generator, which the dev server re-runs on its own
 // whenever the manifest changes.
@@ -100,7 +76,7 @@ export const speciesSlugFor = (latin, lang) => slugify(commonName(latin, lang));
 // the name in later moves an address that has already been shared and indexed
 // — /s/falco-peregrinus/ becoming /s/falco-pellegrino/, /en/s/airone-cenerino/
 // becoming /en/s/grey-heron/. One rule, both languages: a new species means
-// two lines in this file, at the same time as the photo.
+// one entry in species.json, both names filled in, at the same time as the photo.
 export const auditSpecies = photos => {
   const named = new Map();
   for (const photo of photos) {
@@ -118,14 +94,15 @@ export const auditSpecies = photos => {
     .filter(entry => entry.missing.length > 0);
 };
 
-// The message lives here so both callers print the same thing: the lines to
+// The message lives here so both callers print the same thing: the entry to
 // paste, and why it cannot simply be done after publishing.
 export const missingSpeciesMessage = ({ latin, filename, missing }) =>
   [
-    `ERROR: no ${missing.length === 2 ? "common name" : missing[0] === "it" ? "Italian name" : "English name"} for "${latin}" (photos/${filename}.jpg) in src/species.mjs`,
-    `       Add the missing line(s) there:`,
-    ...(missing.includes("it") ? [`         SPECIES_IT: "${latin}": "Nome italiano",`] : []),
-    ...(missing.includes("en") ? [`         SPECIES_EN: "${latin}": "English name",`] : []),
+    `ERROR: no ${missing.length === 2 ? "common name" : missing[0] === "it" ? "Italian name" : "English name"} for "${latin}" (photos/${filename}.jpg) in species.json`,
+    missing.length === 2
+      ? `       Add an entry there (generate-photos.js sorts the file afterwards):`
+      : `       Fill in the missing name in its entry:`,
+    `         { "latin": "${latin}", "it": "${SPECIES_IT[latin] ?? "Nome italiano"}", "en": "${SPECIES_EN[latin] ?? "English name"}" }`,
     `       Now rather than later: the species page URL is built from the name,`,
     `       so filling it in after publishing moves an address already shared.`,
   ].join("\n");
