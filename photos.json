@@ -27,33 +27,6 @@
     "position": "Lombardia"
   },
   {
-    "filename": "IMG_2438",
-    "title": "Aironi Guardabuoi",
-    "titleEn": "Cattle Egrets",
-    "species": "Bubulcus ibis",
-    "description": "La particolarità di questa foto è la leggera sfumatura verde sul lato destro data dalle foglie dell’albero che avevo accanto durante lo scatto. Ho deciso di lasciarla perché, a mio parere, dà alla foto un tocco particolare.",
-    "descriptionEn": "The distinctive feature of this photo is the subtle green gradient on the right side, caused by the leaves of the tree next to me when I took the shot. I decided to keep it because I think it gives the photo a unique touch.",
-    "position": "Lombardia"
-  },
-  {
-    "filename": "IMG_2286",
-    "title": "Garzetta",
-    "titleEn": "Little Egret",
-    "species": "Egretta garzetta",
-    "description": "Da notare il bellissimo occhio di questa garzetta.",
-    "descriptionEn": "Notice the beautiful eye of this little egret.",
-    "position": "Lombardia"
-  },
-  {
-    "filename": "IMG_1491",
-    "title": "Giovane Nitticora",
-    "titleEn": "A Young Night Heron",
-    "species": "Nycticorax nycticorax",
-    "description": "Una giovanissima nitticora mimetizzata tra i rami, in cerca di una preda.",
-    "descriptionEn": "A very young black-crowned night heron camouflaging among the branches, searching for prey",
-    "position": "Lombardia"
-  },
-  {
     "filename": "IMG_0802",
     "title": "Garzetta e Ibis Sacro",
     "titleEn": "Little Egret and Sacred Ibis",
@@ -100,15 +73,6 @@
     "position": "Toscana"
   },
   {
-    "filename": "IMG_7662",
-    "title": "Tortore Selvatiche",
-    "titleEn": "Turtle Doves",
-    "species": "Streptopelia turtur",
-    "description": "Due tortore appollaiate sulla stessa punta di ramo secco, strette strette nella luce dorata della sera.",
-    "descriptionEn": "Two turtle doves perched on the same tip of a dry branch, pressed close together in the golden evening light.",
-    "position": "Toscana"
-  },
-  {
     "filename": "IMG_6854",
     "title": "Cicogna",
     "titleEn": "White Stork",
@@ -146,24 +110,6 @@
     "position": "Lombardia"
   },
   {
-    "filename": "IMG_6197",
-    "title": "Oca Selvatica",
-    "titleEn": "Greylag Goose",
-    "species": "Anser anser",
-    "description": "L'oca selvatica sfreccia bassa su un campo di stoppie.",
-    "descriptionEn": "The greylag goose races low over a field of stubble.",
-    "position": "Lombardia"
-  },
-  {
-    "filename": "IMG_5893",
-    "title": "Airone Cenerino",
-    "titleEn": "Grey Heron",
-    "species": "Ardea cinerea",
-    "description": "Solo una sagoma nera contro un cielo che vira dall'oro al viola.",
-    "descriptionEn": "Just a black silhouette against a sky turning from gold to violet.",
-    "position": "Lombardia"
-  },
-  {
     "filename": "IMG_5849",
     "title": "Parrocchetti",
     "titleEn": "Parakeets",
@@ -173,30 +119,12 @@
     "position": "Lombardia"
   },
   {
-    "filename": "IMG_5778",
-    "title": "Airone Cenerino",
-    "titleEn": "Grey Heron",
-    "species": "Ardea cinerea",
-    "description": "L'airone cenerino rade il campo mietuto a bassa quota, con un collega distante sullo sfondo che osserva la scena senza intromettersi.",
-    "descriptionEn": "The grey heron skims the harvested field at low altitude, while a distant colleague watches the scene from the background without getting involved.",
-    "position": "Lombardia"
-  },
-  {
     "filename": "IMG_5776",
     "title": "Airone Bianco Maggiore",
     "titleEn": "Great Egret",
     "species": "Ardea alba",
     "description": "Airone bianco maggiore in volo tra i rami spogli, becco spalancato: sembra stia urlando alla giornata di svegliarsi.",
     "descriptionEn": "A great egret flying through the bare branches, bill wide open: it looks like it is yelling at the day to wake up.",
-    "position": "Lombardia"
-  },
-  {
-    "filename": "IMG_5703",
-    "title": "Cormorano",
-    "titleEn": "Cormorant",
-    "species": "Phalacrocorax carbo",
-    "description": "Atterraggio maldestro del cormorano, spruzzi ovunque, mentre sullo sfondo un airone bianco osserva impassibile la scena come se fosse tutto normale.",
-    "descriptionEn": "A clumsy landing by the cormorant, spray everywhere, while in the background a great egret watches impassively, as if this were all perfectly normal.",
     "position": "Lombardia"
   },
   {
