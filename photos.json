@@ -270,5 +270,26 @@
     "description": "Due aironi cenerini si contendono lo stesso angolo di stagno verde, ali spalancate come in una discussione condominiale mai troppo seria.",
     "descriptionEn": "Two grey herons squabbling over the same corner of a green pond, wings flung wide like neighbours in a never-too-serious argument.",
     "position": "Lombardia"
+  },
+  {
+    "filename": "IMG_4734",
+    "title": "Merlo",
+    "titleEn": "Common blackbird",
+    "species": "Turdus merula",
+    "position": "Lombardia"
+  },
+  {
+    "filename": "IMG_4497",
+    "title": "Aironi Cenerini",
+    "titleEn": "Grey Herons",
+    "species": "Ardea cinerea",
+    "position": "Lombardia"
+  },
+  {
+    "filename": "IMG_4401",
+    "title": "Airone Bianco Maggiore",
+    "titleEn": "Great Egret",
+    "species": "Ardea alba",
+    "position": "Lombardia"
   }
 ]
