@@ -291,5 +291,26 @@
     "titleEn": "Great Egret",
     "species": "Ardea alba",
     "position": "Lombardia"
+  },
+  {
+    "filename": "IMG_4983",
+    "title": "Storni",
+    "titleEn": "Common Starlings",
+    "species": "Sturnus vulgaris",
+    "position": "Lombardia"
+  },
+  {
+    "filename": "IMG_4736",
+    "title": "Cormorani",
+    "titleEn": "Cormorants",
+    "species": "Phalacrocorax carbo",
+    "position": "Lombardia"
+  },
+  {
+    "filename": "IMG_5157",
+    "title": "Cinciallegra",
+    "titleEn": "Great Tit",
+    "species": "Parus major",
+    "position": "Lombardia"
   }
 ]

@@ -88,5 +88,15 @@
     "latin": "Turdus merula",
     "it": "Merlo",
     "en": "Common blackbird"
+  },
+  {
+    "latin": "Sturnus vulgaris",
+    "it": "Storno comune",
+    "en": "Common Starling"
+  },
+  {
+    "latin": "Parus major",
+    "it": "Cinciallegra",
+    "en": "Great Tit"
   }
 ]
