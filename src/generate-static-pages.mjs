@@ -16,7 +16,7 @@
 // no per-language URL: there the language is a stored preference like the
 // theme (src/i18n.mjs), so the links back into the gallery are the same from
 // both halves. Neither the language nor the theme switch is shown on this
-// static surface — only the homepage carries them, see CLAUDE.md.
+// static surface — only the homepage carries them, see AGENTS.md.
 //
 // The photo pages used to be redirect stubs that bounced into the SPA deep
 // link. They are real pages now: a redirect is not indexable, and the static
@@ -390,7 +390,7 @@ footer a{color:var(--muted)}
 `.trim();
 
 // No language or theme switch here — that pair only lives on the homepage
-// nav, see CLAUDE.md. This nav is plain links, and the language stays
+// nav, see AGENTS.md. This nav is plain links, and the language stays
 // reachable through rel="alternate" hreflang in the head instead.
 const nav = lang => {
   const t = strings(lang);

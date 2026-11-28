@@ -7,7 +7,7 @@ import {useLang} from "./lang";
 // so the scroll position is reset on mount.
 //
 // No language or theme toggle here: those two only live on the homepage nav,
-// see CLAUDE.md. A visitor who wants to switch either goes back there first.
+// see AGENTS.md. A visitor who wants to switch either goes back there first.
 export function SubPage({overline, title, sub, wide, children}) {
   const {t} = useLang();
 
